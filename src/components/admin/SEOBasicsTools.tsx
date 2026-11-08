@@ -208,7 +208,7 @@ Sitemap: ${baseUrl}/sitemap.xml
             Microdata allows Google to display <strong>rich product snippets</strong> including star ratings, price currency, in-stock badges, and artisan brand provenance directly in search results.
           </p>
           <div className="p-2 bg-[#FAF8F5] font-mono text-[11px] text-[#162B21] border border-[#EBE4D8] rounded-xs">
-            @type: "Product", offers: { price: "42500", currency: "INR" }
+            {'@type: "Product", offers: { price: "42500", currency: "INR" }'}
           </div>
         </div>
 

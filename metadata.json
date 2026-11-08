@@ -1,6 +1,8 @@
 {
   "name": "Kāshida Couture — Luxury Kashmiri Fashion",
-  "description": "High-craft Kashmiri luxury fashion platform showcasing authentic hand-embroidered pherans, pure Pashmina shawls, and bespoke heritage textiles.",
+  "description": "High craft Kashmiri luxury fashion platform showcasing authentic hand-embroidered pherans, pure Pashmina shawls, and bespoke heritage textiles.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

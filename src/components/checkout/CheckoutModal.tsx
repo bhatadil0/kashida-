@@ -13,6 +13,7 @@ import {
   Smartphone,
 } from 'lucide-react';
 import { CartItem, Coupon, OrderDossier, ShippingAddress, PaymentGatewayConfig } from '../../types';
+import { formatPrice } from '../../utils/currency';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ interface CheckoutModalProps {
   items: CartItem[];
   appliedCoupon: Coupon | null;
   paymentConfig?: PaymentGatewayConfig;
+  currency?: string;
   onOrderSuccess: (order: OrderDossier) => void;
 }
 
@@ -29,6 +31,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   items,
   appliedCoupon,
   paymentConfig,
+  currency = 'INR',
   onOrderSuccess,
 }) => {
   const [step, setStep] = useState<1 | 2>(1);
@@ -317,7 +320,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <div>
                   <span className="text-[#525B56]">Total Allocation ({items.length} items):</span>
                   <span className="font-mono text-base font-semibold text-[#162B21] ml-2 tabular-nums">
-                    ₹{totalAmount.toLocaleString('en-IN')}
+                    {formatPrice(totalAmount, currency)}
                   </span>
                 </div>
                 <span className="text-[11px] text-[#C5A059] flex items-center gap-1 font-medium">
@@ -539,7 +542,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <div>
                   <span className="text-xs text-[#525B56]">Final Payable Amount:</span>
                   <p className="font-mono text-2xl font-semibold text-[#162B21] tabular-nums">
-                    ₹{totalAmount.toLocaleString('en-IN')}
+                    {formatPrice(totalAmount, currency)}
                   </p>
                 </div>
 
@@ -555,7 +558,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 >
                   <Lock className="w-4 h-4 text-[#DFC289]" />
                   <span>
-                    {isProcessing ? 'Verifying with Razorpay...' : `Authorize ₹${totalAmount.toLocaleString('en-IN')}`}
+                    {isProcessing ? 'Verifying with Razorpay...' : `Authorize ${formatPrice(totalAmount, currency)}`}
                   </span>
                 </button>
               </div>

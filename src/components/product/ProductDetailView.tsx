@@ -16,29 +16,39 @@ import {
 import { Product, Review, SEOConfig } from '../../types';
 import { SizeChartModal } from './SizeChartModal';
 import { calculateProductSEOScore } from '../../utils/seoHealth';
+import { formatPrice } from '../../utils/currency';
+import { Scissors, Award } from 'lucide-react';
 
 interface ProductDetailViewProps {
   product: Product;
   allProducts: Product[];
   seoConfig?: SEOConfig;
+  currency?: string;
   isWishlisted: boolean;
   onToggleWishlist: (product: Product) => void;
   onAddToCart: (product: Product, size: string, color: string, quantity: number) => void;
   onBuyNow: (product: Product, size: string, color: string, quantity: number) => void;
   onSelectProduct: (product: Product) => void;
   onBackToCatalog: () => void;
+  onOpenGIModal?: () => void;
+  onOpenBespokeModal?: () => void;
+  onAddReview?: (productId: string, review: Review) => void;
 }
 
 export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   product,
   allProducts,
   seoConfig,
+  currency = 'INR',
   isWishlisted,
   onToggleWishlist,
   onAddToCart,
   onBuyNow,
   onSelectProduct,
   onBackToCatalog,
+  onOpenGIModal,
+  onOpenBespokeModal,
+  onAddReview,
 }) => {
   const seoScore = calculateProductSEOScore(product, seoConfig);
   const [selectedImage, setSelectedImage] = useState<string>(product.primaryImage);
@@ -115,6 +125,9 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
     };
 
     setReviewsList([newRev, ...reviewsList]);
+    if (onAddReview) {
+      onAddReview(product.id, newRev);
+    }
     setNewReviewAuthor('');
     setNewReviewComment('');
     setReviewFormOpen(false);
@@ -248,15 +261,15 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
           <div className="p-4 bg-[#F2EDE4]/40 border border-[#EBE4D8] rounded-xs space-y-1">
             <div className="flex items-baseline gap-3">
               <span className="font-mono text-3xl font-semibold text-[#162B21] tabular-nums">
-                ₹{discountedPrice.toLocaleString('en-IN')}
+                {formatPrice(discountedPrice, currency)}
               </span>
               {product.discountPercent > 0 && (
                 <>
                   <span className="font-mono text-base line-through text-[#525B56]/60 tabular-nums">
-                    ₹{product.basePrice.toLocaleString('en-IN')}
+                    {formatPrice(product.basePrice, currency)}
                   </span>
                   <span className="text-xs uppercase tracking-wider font-semibold text-[#681A24]">
-                    Save ₹{savings.toLocaleString('en-IN')} ({product.discountPercent}% Off)
+                    Save {formatPrice(savings, currency)} ({product.discountPercent}% Off)
                   </span>
                 </>
               )}
@@ -418,6 +431,18 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
             >
               Direct Reserve & Checkout
             </button>
+
+            {/* Bespoke Commission Consultation Button */}
+            {onOpenBespokeModal && (
+              <button
+                type="button"
+                onClick={onOpenBespokeModal}
+                className="w-full py-2.5 px-4 border border-[#162B21]/20 hover:border-[#162B21] bg-[#F2EDE4]/60 text-[#162B21] text-xs uppercase tracking-wider font-semibold transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <Scissors className="w-3.5 h-3.5 text-[#C5A059]" />
+                <span>Request Bespoke Fit / Custom Monogram</span>
+              </button>
+            )}
           </div>
 
           {/* Content Quality Score UI Element (User Requirement) */}
@@ -504,13 +529,28 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
 
           {/* Trust Value Props */}
           <div className="grid grid-cols-3 gap-3 pt-4 border-t border-[#F2EDE4] text-center text-[#525B56]">
-            <div className="flex flex-col items-center">
-              <ShieldCheck className="w-5 h-5 text-[#C5A059] mb-1" />
-              <span className="text-[10px] uppercase tracking-wider font-semibold text-[#162B21]">
-                GI Provenance
-              </span>
-              <span className="text-[9px]">Registered Tag</span>
-            </div>
+            {onOpenGIModal ? (
+              <button
+                type="button"
+                onClick={onOpenGIModal}
+                className="flex flex-col items-center hover:opacity-80 cursor-pointer"
+                title="Inspect GI Certificate & Lab Assay"
+              >
+                <ShieldCheck className="w-5 h-5 text-[#C5A059] mb-1" />
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-[#162B21] underline decoration-[#C5A059]">
+                  GI Provenance
+                </span>
+                <span className="text-[9px] text-[#C5A059]">Verify Seal →</span>
+              </button>
+            ) : (
+              <div className="flex flex-col items-center">
+                <ShieldCheck className="w-5 h-5 text-[#C5A059] mb-1" />
+                <span className="text-[10px] uppercase tracking-wider font-semibold text-[#162B21]">
+                  GI Provenance
+                </span>
+                <span className="text-[9px]">Registered Tag</span>
+              </div>
+            )}
             <div className="flex flex-col items-center">
               <Truck className="w-5 h-5 text-[#C5A059] mb-1" />
               <span className="text-[10px] uppercase tracking-wider font-semibold text-[#162B21]">

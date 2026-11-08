@@ -9,6 +9,7 @@ import {
   PaymentGatewayConfig,
   SEOConfig,
   CategoryConfig,
+  Review,
 } from './types';
 import { INITIAL_PRODUCTS, PROMO_COUPONS, INITIAL_CATEGORIES } from './data/products';
 import { AnnouncementBar } from './components/layout/AnnouncementBar';
@@ -28,6 +29,11 @@ import { CheckoutModal } from './components/checkout/CheckoutModal';
 import { OrderConfirmationModal } from './components/checkout/OrderConfirmationModal';
 import { AdminOperationsModal } from './components/admin/AdminOperationsModal';
 import { AdminPortalView } from './components/admin/AdminPortalView';
+import { CustomerPortalModal } from './components/account/CustomerPortalModal';
+import { TrackOrderModal } from './components/checkout/TrackOrderModal';
+import { GIVerificationModal } from './components/product/GIVerificationModal';
+import { BespokeInquiryModal } from './components/product/BespokeInquiryModal';
+import { ConciergeCareModal } from './components/layout/ConciergeCareModal';
 import { ArrowRight, Sparkles } from 'lucide-react';
 
 export default function App() {
@@ -255,6 +261,15 @@ export default function App() {
     sortBy: 'featured',
   });
 
+  // Currency State (Persisted)
+  const [currency, setCurrency] = useState<string>(() => {
+    return localStorage.getItem('kashida_currency') || 'INR';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('kashida_currency', currency);
+  }, [currency]);
+
   // Modal Visibility States
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -264,6 +279,12 @@ export default function App() {
   const [lastCompletedOrder, setLastCompletedOrder] = useState<OrderDossier | null>(null);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isCustomerPortalOpen, setIsCustomerPortalOpen] = useState(false);
+  const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
+  const [trackingOrderNumber, setTrackingOrderNumber] = useState('KASH-849201');
+  const [isGIModalOpen, setIsGIModalOpen] = useState(false);
+  const [isBespokeModalOpen, setIsBespokeModalOpen] = useState(false);
+  const [isConciergeOpen, setIsConciergeOpen] = useState(false);
 
   // Cart operations
   const handleAddToCart = (
@@ -511,6 +532,28 @@ export default function App() {
     );
   };
 
+  // Patron review submission handler
+  const handleAddProductReview = (productId: string, newReview: Review) => {
+    setProducts((prev) =>
+      prev.map((p) => {
+        if (p.id !== productId) return p;
+        const updatedReviews = [newReview, ...p.reviews];
+        const avgRating =
+          updatedReviews.reduce((sum, r) => sum + r.rating, 0) / updatedReviews.length;
+        const updatedProduct = {
+          ...p,
+          reviews: updatedReviews,
+          reviewsCount: updatedReviews.length,
+          rating: Math.round(avgRating * 10) / 10,
+        };
+        if (selectedProduct && selectedProduct.id === productId) {
+          setSelectedProduct(updatedProduct);
+        }
+        return updatedProduct;
+      })
+    );
+  };
+
   // Filter products logic
   const filteredProducts = products.filter((p) => {
     if (filters.category !== 'all' && p.category !== filters.category) return false;
@@ -582,7 +625,13 @@ export default function App() {
       {/* Top Announcement Bar */}
       <AnnouncementBar
         text={announcementText}
+        currency={currency}
+        onSelectCurrency={setCurrency}
         onOpenPromo={() => setIsCartOpen(true)}
+        onOpenTrackOrder={() => {
+          setTrackingOrderNumber('KASH-849201');
+          setIsTrackOrderOpen(true);
+        }}
       />
 
       {/* Main Luxury Navbar */}
@@ -596,6 +645,12 @@ export default function App() {
         onOpenCart={() => setIsCartOpen(true)}
         onOpenWishlist={() => setIsWishlistOpen(true)}
         onOpenAdmin={() => setCurrentView('admin')}
+        onOpenCustomerPortal={() => setIsCustomerPortalOpen(true)}
+        onOpenTrackOrder={() => {
+          setTrackingOrderNumber('KASH-849201');
+          setIsTrackOrderOpen(true);
+        }}
+        onOpenConcierge={() => setIsConciergeOpen(true)}
         onNavigateHome={handleNavigateHome}
       />
 
@@ -640,6 +695,7 @@ export default function App() {
                   <ProductCard
                     key={product.id}
                     product={product}
+                    currency={currency}
                     isWishlisted={wishlist.some((w) => w.id === product.id)}
                     onToggleWishlist={handleToggleWishlist}
                     onQuickView={(p) => setQuickViewProduct(p)}
@@ -715,6 +771,7 @@ export default function App() {
                   <ProductCard
                     key={product.id}
                     product={product}
+                    currency={currency}
                     isWishlisted={wishlist.some((w) => w.id === product.id)}
                     onToggleWishlist={handleToggleWishlist}
                     onQuickView={(p) => setQuickViewProduct(p)}
@@ -732,12 +789,16 @@ export default function App() {
             product={selectedProduct}
             allProducts={products}
             seoConfig={seoConfig}
+            currency={currency}
             isWishlisted={wishlist.some((w) => w.id === selectedProduct.id)}
             onToggleWishlist={handleToggleWishlist}
             onAddToCart={handleAddToCart}
             onBuyNow={handleBuyNow}
             onSelectProduct={handleSelectProduct}
             onBackToCatalog={() => setCurrentView('catalog')}
+            onOpenGIModal={() => setIsGIModalOpen(true)}
+            onOpenBespokeModal={() => setIsBespokeModalOpen(true)}
+            onAddReview={handleAddProductReview}
           />
         )}
       </main>
@@ -747,6 +808,14 @@ export default function App() {
         onSelectCategory={handleSelectCategory}
         onExploreHeritage={handleExploreHeritage}
         onOpenAdmin={() => setCurrentView('admin')}
+        onOpenTrackOrder={() => {
+          setTrackingOrderNumber('KASH-849201');
+          setIsTrackOrderOpen(true);
+        }}
+        onOpenGIModal={() => setIsGIModalOpen(true)}
+        onOpenBespokeModal={() => setIsBespokeModalOpen(true)}
+        onOpenConcierge={() => setIsConciergeOpen(true)}
+        onOpenCustomerPortal={() => setIsCustomerPortalOpen(true)}
       />
 
       {/* MODALS & DRAWERS */}
@@ -761,6 +830,7 @@ export default function App() {
       {/* Quick View Modal */}
       <QuickViewModal
         product={quickViewProduct}
+        currency={currency}
         onClose={() => setQuickViewProduct(null)}
         onAddToCart={(p, sz, col) => handleAddToCart(p, sz, col, 1)}
         onViewFullPDP={handleSelectProduct}
@@ -771,6 +841,7 @@ export default function App() {
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         items={cartItems}
+        currency={currency}
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveItem}
         onProceedToCheckout={() => setIsCheckoutOpen(true)}
@@ -794,17 +865,70 @@ export default function App() {
         items={cartItems}
         appliedCoupon={appliedCoupon}
         paymentConfig={paymentConfig}
+        currency={currency}
         onOrderSuccess={handleOrderSuccess}
       />
 
       {/* Order Confirmation Dossier Modal */}
       <OrderConfirmationModal
         order={lastCompletedOrder}
+        currency={currency}
         onClose={() => setIsOrderConfirmationOpen(false)}
         onContinueShopping={() => {
           setIsOrderConfirmationOpen(false);
           setCurrentView('catalog');
         }}
+        onTrackOrder={(ordNum) => {
+          setTrackingOrderNumber(ordNum);
+          setIsTrackOrderOpen(true);
+        }}
+        onOpenCustomerPortal={() => setIsCustomerPortalOpen(true)}
+      />
+
+      {/* Patron VIP Account Portal */}
+      <CustomerPortalModal
+        isOpen={isCustomerPortalOpen}
+        onClose={() => setIsCustomerPortalOpen(false)}
+        orders={orders}
+        currency={currency}
+        onTrackOrder={(ordNum) => {
+          setTrackingOrderNumber(ordNum);
+          setIsTrackOrderOpen(true);
+        }}
+        onInspectOrder={(ord) => {
+          setLastCompletedOrder(ord);
+          setIsOrderConfirmationOpen(true);
+        }}
+      />
+
+      {/* Public Order Tracking Radar Modal */}
+      <TrackOrderModal
+        isOpen={isTrackOrderOpen}
+        onClose={() => setIsTrackOrderOpen(false)}
+        orders={orders}
+        initialOrderNumber={trackingOrderNumber}
+        currency={currency}
+      />
+
+      {/* Geographical Indication (GI) Verification Modal */}
+      <GIVerificationModal
+        isOpen={isGIModalOpen}
+        onClose={() => setIsGIModalOpen(false)}
+        productTitle={selectedProduct?.name}
+      />
+
+      {/* Bespoke Tailoring & Monogram Inquiry Modal */}
+      <BespokeInquiryModal
+        isOpen={isBespokeModalOpen}
+        onClose={() => setIsBespokeModalOpen(false)}
+        product={selectedProduct}
+      />
+
+      {/* Atelier Concierge & Care FAQ Modal */}
+      <ConciergeCareModal
+        isOpen={isConciergeOpen}
+        onClose={() => setIsConciergeOpen(false)}
+        onOpenBespoke={() => setIsBespokeModalOpen(true)}
       />
 
       {/* Admin Operations & Governance Console */}

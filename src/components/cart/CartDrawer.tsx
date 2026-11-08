@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { X, Trash2, ShoppingBag, ArrowRight, ShieldCheck, Tag } from 'lucide-react';
+import { X, Trash2, ShoppingBag, ArrowRight, ShieldCheck, Tag, Gift, Sparkles } from 'lucide-react';
 import { CartItem, Coupon } from '../../types';
 import { PROMO_COUPONS } from '../../data/products';
+import { formatPrice } from '../../utils/currency';
 
 interface CartDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   items: CartItem[];
+  currency?: string;
   onUpdateQuantity: (cartItemId: string, newQty: number) => void;
   onRemoveItem: (cartItemId: string) => void;
   onProceedToCheckout: () => void;
@@ -18,6 +20,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   isOpen,
   onClose,
   items,
+  currency = 'INR',
   onUpdateQuantity,
   onRemoveItem,
   onProceedToCheckout,
@@ -27,6 +30,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [couponInput, setCouponInput] = useState('');
   const [couponError, setCouponError] = useState('');
   const [couponSuccess, setCouponSuccess] = useState('');
+  const [isGiftPackaging, setIsGiftPackaging] = useState(false);
+  const [giftNote, setGiftNote] = useState('');
 
   if (!isOpen) return null;
 
@@ -46,7 +51,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     }
   }
 
-  const finalTotal = Math.max(0, subTotal - discountAmount);
+  // Gift packaging is complimentary if order > 40,000 INR
+  const giftPackagingFee = isGiftPackaging ? (subTotal >= 40000 ? 0 : 2500) : 0;
+
+  const finalTotal = Math.max(0, subTotal - discountAmount + giftPackagingFee);
 
   const handleApplyCoupon = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +70,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     }
 
     if (subTotal < found.minSpend) {
-      setCouponError(`Requires minimum order of ₹${found.minSpend.toLocaleString('en-IN')}`);
+      setCouponError(`Requires minimum order of ${formatPrice(found.minSpend, currency)}`);
       return;
     }
 
@@ -103,7 +111,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 <span>
                   {progressToFreeShipping >= 100
                     ? '🎉 Complimentary Global Express Unlocked!'
-                    : `Add ₹${remainingForFreeShipping.toLocaleString('en-IN')} for Free Global Express`}
+                    : `Add ${formatPrice(remainingForFreeShipping, currency)} for Free Global Express`}
                 </span>
                 <span className="font-mono">{Math.round(progressToFreeShipping)}%</span>
               </div>
@@ -186,12 +194,45 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
                         {/* Line Subtotal */}
                         <span className="font-mono text-sm font-semibold text-[#162B21] tabular-nums">
-                          ₹{(item.unitPrice * item.quantity).toLocaleString('en-IN')}
+                          {formatPrice(item.unitPrice * item.quantity, currency)}
                         </span>
                       </div>
                     </div>
                   </div>
                 ))}
+
+                {/* Gift Keepsake Packaging Option */}
+                <div className="pt-4 pb-2 space-y-2">
+                  <label className="flex items-start gap-2.5 cursor-pointer text-xs">
+                    <input
+                      type="checkbox"
+                      checked={isGiftPackaging}
+                      onChange={(e) => setIsGiftPackaging(e.target.checked)}
+                      className="mt-0.5 accent-[#162B21]"
+                    />
+                    <div>
+                      <span className="font-semibold text-[#162B21] flex items-center gap-1.5">
+                        <Gift className="w-3.5 h-3.5 text-[#C5A059]" />
+                        <span>Artisanal Walnut Keepsake Box & Saffron Card</span>
+                      </span>
+                      <p className="text-[11px] text-[#525B56]">
+                        {subTotal >= 40000
+                          ? 'Complimentary with your royal order (Valued at ₹2,500)'
+                          : `Includes hand-carved Chinar wooden chest + handwritten Urdu calligraphy card (+${formatPrice(2500, currency)})`}
+                      </p>
+                    </div>
+                  </label>
+
+                  {isGiftPackaging && (
+                    <input
+                      type="text"
+                      value={giftNote}
+                      onChange={(e) => setGiftNote(e.target.value)}
+                      placeholder="Inscription: 'With deepest honor for Lady Soraya...'"
+                      className="w-full text-xs p-2 bg-white border border-[#EBE4D8] focus:border-[#C5A059] outline-none"
+                    />
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -244,7 +285,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 <div className="flex justify-between">
                   <span>Subtotal</span>
                   <span className="font-mono text-[#1C1F1E] tabular-nums">
-                    ₹{subTotal.toLocaleString('en-IN')}
+                    {formatPrice(subTotal, currency)}
                   </span>
                 </div>
 
@@ -252,7 +293,16 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <div className="flex justify-between text-[#681A24] font-medium">
                     <span>Artisan Privilege ({appliedCoupon?.code})</span>
                     <span className="font-mono tabular-nums">
-                      -₹{discountAmount.toLocaleString('en-IN')}
+                      -{formatPrice(discountAmount, currency)}
+                    </span>
+                  </div>
+                )}
+
+                {isGiftPackaging && (
+                  <div className="flex justify-between text-[#162B21]">
+                    <span>Walnut Keepsake Packaging</span>
+                    <span className="font-mono">
+                      {giftPackagingFee === 0 ? 'Complimentary' : formatPrice(giftPackagingFee, currency)}
                     </span>
                   </div>
                 )}
@@ -260,14 +310,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 <div className="flex justify-between">
                   <span>Insured Global Shipping</span>
                   <span className="text-[#162B21] font-medium">
-                    {subTotal >= freeShippingThreshold ? 'Complimentary' : '₹1,500'}
+                    {subTotal >= freeShippingThreshold ? 'Complimentary' : formatPrice(1500, currency)}
                   </span>
                 </div>
 
                 <div className="flex justify-between text-base font-semibold text-[#162B21] pt-2 border-t border-[#F2EDE4]">
                   <span className="font-serif">Total Payable</span>
                   <span className="font-mono tabular-nums">
-                    ₹{finalTotal.toLocaleString('en-IN')}
+                    {formatPrice(finalTotal, currency)}
                   </span>
                 </div>
               </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ShoppingBag, Heart, Shield, Menu, X } from 'lucide-react';
+import { Search, ShoppingBag, Heart, Shield, Menu, X, User, Truck, Sparkles } from 'lucide-react';
 import { ProductCategory, CategoryConfig } from '../../types';
 
 interface NavbarProps {
@@ -12,6 +12,9 @@ interface NavbarProps {
   onOpenCart: () => void;
   onOpenWishlist: () => void;
   onOpenAdmin: () => void;
+  onOpenCustomerPortal?: () => void;
+  onOpenTrackOrder?: () => void;
+  onOpenConcierge?: () => void;
   onNavigateHome: () => void;
 }
 
@@ -25,6 +28,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenCart,
   onOpenWishlist,
   onOpenAdmin,
+  onOpenCustomerPortal,
+  onOpenTrackOrder,
+  onOpenConcierge,
   onNavigateHome,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -95,7 +101,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
 
         {/* Zone 3: Functional Actions Cluster */}
-        <div className="flex items-center gap-4 sm:gap-6 text-[#1C1F1E] shrink-0">
+        <div className="flex items-center gap-3 sm:gap-5 text-[#1C1F1E] shrink-0">
           <button
             onClick={onOpenSearch}
             className="p-1.5 hover:text-[#C5A059] transition-colors cursor-pointer group flex items-center gap-1.5"
@@ -119,6 +125,21 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             )}
           </button>
+
+          {/* Patron VIP Account Portal Button */}
+          {onOpenCustomerPortal && (
+            <button
+              onClick={onOpenCustomerPortal}
+              className="p-1.5 hover:text-[#C5A059] transition-colors cursor-pointer group flex items-center gap-1.5"
+              aria-label="Patron VIP Portal & Commissions"
+              title="Patron VIP Account & Commissions"
+            >
+              <User className="w-5 h-5 stroke-[1.5]" />
+              <span className="hidden xl:inline text-xs tracking-wider text-[#525B56] group-hover:text-[#C5A059]">
+                Patron VIP
+              </span>
+            </button>
+          )}
 
           <button
             onClick={onOpenCart}
@@ -170,13 +191,52 @@ export const Navbar: React.FC<NavbarProps> = ({
             ))}
           </div>
 
-          <div className="pt-4 border-t border-[#F2EDE4] flex justify-between items-center">
+          <div className="pt-4 border-t border-[#F2EDE4] space-y-3">
+            {onOpenCustomerPortal && (
+              <button
+                onClick={() => {
+                  onOpenCustomerPortal();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full text-left text-xs uppercase tracking-wider text-[#162B21] flex items-center gap-2 font-medium"
+              >
+                <User className="w-4 h-4 text-[#C5A059]" />
+                <span>Patron VIP Dossier & Measurements</span>
+              </button>
+            )}
+
+            {onOpenTrackOrder && (
+              <button
+                onClick={() => {
+                  onOpenTrackOrder();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full text-left text-xs uppercase tracking-wider text-[#162B21] flex items-center gap-2 font-medium"
+              >
+                <Truck className="w-4 h-4 text-[#C5A059]" />
+                <span>Track Commission Logistics</span>
+              </button>
+            )}
+
+            {onOpenConcierge && (
+              <button
+                onClick={() => {
+                  onOpenConcierge();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full text-left text-xs uppercase tracking-wider text-[#162B21] flex items-center gap-2 font-medium"
+              >
+                <Sparkles className="w-4 h-4 text-[#C5A059]" />
+                <span>Atelier Concierge & Care FAQ</span>
+              </button>
+            )}
+
             <button
               onClick={() => {
                 onOpenAdmin();
                 setMobileMenuOpen(false);
               }}
-              className="text-xs uppercase tracking-wider text-[#162B21] flex items-center gap-1.5 font-medium"
+              className="w-full text-left text-xs uppercase tracking-wider text-[#162B21] flex items-center gap-2 font-medium pt-2 border-t border-[#F2EDE4]"
             >
               <Shield className="w-4 h-4 text-[#C5A059]" />
               <span>Admin Operations Console</span>

@@ -1,10 +1,12 @@
 import React from 'react';
 import { Eye, Heart, ShoppingBag, Star } from 'lucide-react';
 import { Product } from '../../types';
+import { formatPrice } from '../../utils/currency';
 
 interface ProductCardProps {
   product: Product;
   isWishlisted: boolean;
+  currency?: string;
   onToggleWishlist: (product: Product) => void;
   onQuickView: (product: Product) => void;
   onSelectProduct: (product: Product) => void;
@@ -14,6 +16,7 @@ interface ProductCardProps {
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
   isWishlisted,
+  currency = 'INR',
   onToggleWishlist,
   onQuickView,
   onSelectProduct,
@@ -130,11 +133,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Price Baseline */}
         <div className="mt-2.5 flex items-baseline gap-2.5">
           <span className="font-mono text-base font-medium text-[#162B21] tabular-nums">
-            ₹{discountedPrice.toLocaleString('en-IN')}
+            {formatPrice(discountedPrice, currency)}
           </span>
           {product.discountPercent > 0 && (
             <span className="font-mono text-xs line-through text-[#525B56]/60 tabular-nums">
-              ₹{product.basePrice.toLocaleString('en-IN')}
+              {formatPrice(product.basePrice, currency)}
             </span>
           )}
         </div>

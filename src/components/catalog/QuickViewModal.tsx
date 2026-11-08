@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { X, ShoppingBag, ShieldCheck, ArrowRight } from 'lucide-react';
 import { Product } from '../../types';
+import { formatPrice } from '../../utils/currency';
 
 interface QuickViewModalProps {
   product: Product | null;
+  currency?: string;
   onClose: () => void;
   onAddToCart: (product: Product, size: string, color: string) => void;
   onViewFullPDP: (product: Product) => void;
@@ -11,6 +13,7 @@ interface QuickViewModalProps {
 
 export const QuickViewModal: React.FC<QuickViewModalProps> = ({
   product,
+  currency = 'INR',
   onClose,
   onAddToCart,
   onViewFullPDP,
@@ -107,12 +110,12 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({
             {/* Price line */}
             <div className="flex items-baseline gap-3 pt-1">
               <span className="font-mono text-2xl font-semibold text-[#162B21] tabular-nums">
-                ₹{discountedPrice.toLocaleString('en-IN')}
+                {formatPrice(discountedPrice, currency)}
               </span>
               {product.discountPercent > 0 && (
                 <>
                   <span className="font-mono text-sm line-through text-[#525B56]/60 tabular-nums">
-                    ₹{product.basePrice.toLocaleString('en-IN')}
+                    {formatPrice(product.basePrice, currency)}
                   </span>
                   <span className="text-xs uppercase tracking-wider text-[#681A24] font-semibold">
                     {product.discountPercent}% OFF

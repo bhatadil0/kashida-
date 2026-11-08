@@ -1,17 +1,27 @@
 import React, { useState } from 'react';
-import { Mail, Check, ShieldCheck } from 'lucide-react';
+import { Mail, Check, ShieldCheck, Truck, Award, Scissors, Sparkles, User } from 'lucide-react';
 import { ProductCategory } from '../../types';
 
 interface FooterProps {
   onSelectCategory: (cat: ProductCategory) => void;
   onExploreHeritage: () => void;
   onOpenAdmin?: () => void;
+  onOpenTrackOrder?: () => void;
+  onOpenGIModal?: () => void;
+  onOpenBespokeModal?: () => void;
+  onOpenConcierge?: () => void;
+  onOpenCustomerPortal?: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
   onSelectCategory,
   onExploreHeritage,
   onOpenAdmin,
+  onOpenTrackOrder,
+  onOpenGIModal,
+  onOpenBespokeModal,
+  onOpenConcierge,
+  onOpenCustomerPortal,
 }) => {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
@@ -97,10 +107,10 @@ export const Footer: React.FC<FooterProps> = ({
             </ul>
           </div>
 
-          {/* Column 3: The Craft & Concierge (3 cols) */}
+          {/* Column 3: The Atelier & Concierge (3 cols) */}
           <div className="lg:col-span-3 space-y-3">
             <h4 className="font-serif text-sm uppercase tracking-wider text-[#DFC289]">
-              The Atelier
+              The Atelier & Concierge
             </h4>
             <ul className="space-y-2 text-xs text-[#FAF8F5]/80">
               <li>
@@ -111,18 +121,61 @@ export const Footer: React.FC<FooterProps> = ({
                   150-Year Guild Legacy
                 </button>
               </li>
-              <li>
-                <span className="text-[#FAF8F5]/60">Srinagar Atelier: Boulevard Road, Dal Lake</span>
-              </li>
-              <li>
-                <span className="text-[#FAF8F5]/60">Artisan Master: Ustad Ghulam Nabi</span>
-              </li>
-              <li>
-                <span className="text-[#FAF8F5]/60">Bespoke Concierge: atelier@kashida-couture.com</span>
-              </li>
-              <li>
-                <span className="text-[#FAF8F5]/60">Concierge Desk: +91 194 245 8820</span>
-              </li>
+              {onOpenTrackOrder && (
+                <li>
+                  <button
+                    onClick={onOpenTrackOrder}
+                    className="hover:text-[#DFC289] transition-colors cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Truck className="w-3.5 h-3.5 text-[#DFC289]" />
+                    <span>Track Your Commission</span>
+                  </button>
+                </li>
+              )}
+              {onOpenGIModal && (
+                <li>
+                  <button
+                    onClick={onOpenGIModal}
+                    className="hover:text-[#DFC289] transition-colors cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Award className="w-3.5 h-3.5 text-[#DFC289]" />
+                    <span>Verify GI Seal & Lab Assay</span>
+                  </button>
+                </li>
+              )}
+              {onOpenBespokeModal && (
+                <li>
+                  <button
+                    onClick={onOpenBespokeModal}
+                    className="hover:text-[#DFC289] transition-colors cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Scissors className="w-3.5 h-3.5 text-[#DFC289]" />
+                    <span>Commission Bespoke Tailoring</span>
+                  </button>
+                </li>
+              )}
+              {onOpenConcierge && (
+                <li>
+                  <button
+                    onClick={onOpenConcierge}
+                    className="hover:text-[#DFC289] transition-colors cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-[#DFC289]" />
+                    <span>Care Guide & Atelier FAQ</span>
+                  </button>
+                </li>
+              )}
+              {onOpenCustomerPortal && (
+                <li>
+                  <button
+                    onClick={onOpenCustomerPortal}
+                    className="hover:text-[#DFC289] transition-colors cursor-pointer flex items-center gap-1.5"
+                  >
+                    <User className="w-3.5 h-3.5 text-[#DFC289]" />
+                    <span>Patron VIP Dossier</span>
+                  </button>
+                </li>
+              )}
             </ul>
           </div>
 
@@ -138,12 +191,12 @@ export const Footer: React.FC<FooterProps> = ({
             {subscribed ? (
               <div className="p-3 bg-[#FAF8F5]/10 border border-[#DFC289]/40 text-xs text-[#DFC289] flex items-center gap-2">
                 <Check className="w-4 h-4" />
-                <span>You are inscribed for private seasonal dispatches.</span>
+                <span>Patron inscribed into Srinagar private salon registry.</span>
               </div>
             ) : (
               <form onSubmit={handleSubscribe} className="space-y-2">
                 <div className="relative">
-                  <Mail className="w-3.5 h-3.5 text-[#DFC289] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Mail className="w-4 h-4 text-[#FAF8F5]/40 absolute left-2.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="email"
                     required

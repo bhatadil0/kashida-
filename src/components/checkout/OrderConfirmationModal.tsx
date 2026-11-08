@@ -8,19 +8,28 @@ import {
   Calendar,
   MapPin,
   Sparkles,
+  ExternalLink,
+  User,
 } from 'lucide-react';
 import { OrderDossier } from '../../types';
+import { formatPrice } from '../../utils/currency';
 
 interface OrderConfirmationModalProps {
   order: OrderDossier | null;
+  currency?: string;
   onClose: () => void;
   onContinueShopping: () => void;
+  onTrackOrder?: (orderNumber: string) => void;
+  onOpenCustomerPortal?: () => void;
 }
 
 export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
   order,
+  currency = 'INR',
   onClose,
   onContinueShopping,
+  onTrackOrder,
+  onOpenCustomerPortal,
 }) => {
   if (!order) return null;
 
@@ -59,94 +68,64 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-[#F2EDE4]/60 border border-[#EBE4D8] rounded-xs text-xs">
             <div>
               <span className="text-[10px] uppercase tracking-wider text-[#525B56] block">
-                Order Reference
+                Commission #
               </span>
-              <strong className="font-mono text-sm text-[#162B21] font-semibold tabular-nums">
+              <span className="font-mono font-semibold text-[#162B21]">
                 {order.orderNumber}
-              </strong>
+              </span>
             </div>
 
             <div>
               <span className="text-[10px] uppercase tracking-wider text-[#525B56] block">
-                Razorpay ID
+                Commission Date
               </span>
-              <strong className="font-mono text-xs text-[#162B21] font-medium truncate block">
-                {order.razorpayPaymentId || 'Verified RZP'}
-              </strong>
+              <span className="font-mono text-[#162B21]">{order.createdAt}</span>
             </div>
 
             <div>
               <span className="text-[10px] uppercase tracking-wider text-[#525B56] block">
-                Air Waybill / Tracking
+                Settlement
               </span>
-              <strong className="font-mono text-xs text-[#C5A059] font-medium truncate block">
-                {order.trackingNumber}
-              </strong>
+              <span className="font-semibold text-emerald-800">
+                {order.paymentStatus} ({order.paymentMethod.replace('RAZORPAY_', '')})
+              </span>
             </div>
 
             <div>
               <span className="text-[10px] uppercase tracking-wider text-[#525B56] block">
-                Status
+                Air Waybill (DHL)
               </span>
-              <span className="inline-block text-[11px] font-semibold uppercase tracking-wider text-[#162B21]">
-                ● {order.status}
-              </span>
+              <span className="font-mono text-[#162B21]">{order.trackingNumber}</span>
             </div>
           </div>
 
-          {/* Shipment Lifecycle Tracker */}
-          <div className="p-4 border border-[#EBE4D8] bg-[#FAF8F5] space-y-3">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-wider font-semibold text-[#162B21]">
-              <Truck className="w-4 h-4 text-[#C5A059]" />
-              <span>Dispatch & Delivery Timeline</span>
-            </div>
-
-            <div className="grid grid-cols-4 gap-2 text-center text-[10px] uppercase tracking-wider">
-              <div className="space-y-1">
-                <div className="w-4 h-4 mx-auto rounded-full bg-[#162B21] text-[#DFC289] flex items-center justify-center text-[8px]">✓</div>
-                <span className="font-semibold text-[#162B21]">Commissioned</span>
-              </div>
-              <div className="space-y-1">
-                <div className="w-4 h-4 mx-auto rounded-full bg-[#162B21] text-[#DFC289] flex items-center justify-center text-[8px]">✓</div>
-                <span className="font-semibold text-[#162B21]">Atelier Inspected</span>
-              </div>
-              <div className="space-y-1">
-                <div className="w-4 h-4 mx-auto rounded-full bg-[#EBE4D8] text-[#525B56] flex items-center justify-center text-[8px]">3</div>
-                <span className="text-[#525B56]">DHL Air Transit</span>
-              </div>
-              <div className="space-y-1">
-                <div className="w-4 h-4 mx-auto rounded-full bg-[#EBE4D8] text-[#525B56] flex items-center justify-center text-[8px]">4</div>
-                <span className="text-[#525B56]">Delivery</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Itemized List */}
+          {/* Allocation Items */}
           <div className="space-y-3">
-            <h4 className="text-xs uppercase tracking-wider font-semibold text-[#162B21]">
-              Commissioned Pieces
+            <h4 className="font-serif text-sm uppercase tracking-wider text-[#162B21] font-semibold">
+              Commissioned Masterpieces ({order.items.length})
             </h4>
-            <div className="divide-y divide-[#F2EDE4] border border-[#EBE4D8] bg-[#FAF8F5] p-4">
-              {order.items.map((item, index) => (
-                <div key={index} className="py-3 flex items-center justify-between gap-4 first:pt-0 last:pb-0">
+
+            <div className="divide-y divide-[#F2EDE4] border border-[#EBE4D8] bg-[#FAF8F5]">
+              {order.items.map((item, idx) => (
+                <div key={idx} className="p-4 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-3">
                     <img
                       src={item.product.primaryImage}
-                      alt=""
-                      className="w-12 h-16 object-cover rounded-xs border border-[#EBE4D8]"
+                      alt={item.product.name}
+                      className="w-12 h-16 object-cover border border-[#EBE4D8]"
                     />
                     <div>
-                      <h5 className="font-serif text-sm text-[#162B21] font-medium">
+                      <p className="font-serif font-medium text-[#162B21]">
                         {item.product.name}
-                      </h5>
+                      </p>
                       <p className="text-[11px] text-[#525B56]">
-                        Size: {item.size} · Color: {item.color} · Qty: {item.quantity}
+                        Tailored Size: {item.size} · Colorway: {item.color} · Qty: {item.quantity}
                       </p>
                     </div>
                   </div>
 
-                  <span className="font-mono text-xs font-semibold text-[#162B21] tabular-nums">
-                    ₹{(item.unitPrice * item.quantity).toLocaleString('en-IN')}
+                  <span className="font-mono font-semibold text-[#162B21]">
+                    {formatPrice(item.unitPrice * item.quantity, currency)}
                   </span>
                 </div>
               ))}
@@ -173,43 +152,58 @@ export const OrderConfirmationModal: React.FC<OrderConfirmationModalProps> = ({
               </span>
               <div className="flex justify-between text-[#525B56]">
                 <span>Subtotal:</span>
-                <span className="font-mono">₹{order.subTotal.toLocaleString('en-IN')}</span>
+                <span className="font-mono">{formatPrice(order.subTotal, currency)}</span>
               </div>
               {order.discountAmount > 0 && (
                 <div className="flex justify-between text-[#681A24]">
                   <span>Privilege ({order.couponCode}):</span>
-                  <span className="font-mono">-₹{order.discountAmount.toLocaleString('en-IN')}</span>
+                  <span className="font-mono">-{formatPrice(order.discountAmount, currency)}</span>
                 </div>
               )}
               <div className="flex justify-between text-[#525B56]">
                 <span>Shipping:</span>
-                <span>{order.shippingCost === 0 ? 'Complimentary' : `₹${order.shippingCost}`}</span>
+                <span>{order.shippingCost === 0 ? 'Complimentary' : formatPrice(order.shippingCost, currency)}</span>
               </div>
               <div className="flex justify-between text-sm font-semibold text-[#162B21] pt-1 border-t border-[#EBE4D8]">
                 <span>Total Paid:</span>
-                <span className="font-mono">₹{order.totalAmount.toLocaleString('en-IN')}</span>
+                <span className="font-mono">{formatPrice(order.totalAmount, currency)}</span>
               </div>
             </div>
           </div>
 
           {/* Action CTAs */}
-          <div className="pt-4 border-t border-[#F2EDE4] flex flex-col sm:flex-row items-center justify-between gap-3">
-            <button
-              onClick={handlePrint}
-              className="inline-flex items-center gap-2 px-4 py-2.5 border border-[#EBE4D8] hover:border-[#C5A059] text-xs uppercase tracking-wider text-[#525B56] hover:text-[#162B21] transition-colors cursor-pointer"
-            >
-              <Printer className="w-4 h-4 text-[#C5A059]" />
-              <span>Print Heirloom Receipt</span>
-            </button>
+          <div className="pt-4 border-t border-[#F2EDE4] flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handlePrint}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 border border-[#EBE4D8] hover:border-[#C5A059] text-xs uppercase tracking-wider text-[#525B56] hover:text-[#162B21] transition-colors cursor-pointer"
+              >
+                <Printer className="w-4 h-4 text-[#C5A059]" />
+                <span>Print Receipt</span>
+              </button>
+
+              {onTrackOrder && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    onTrackOrder(order.orderNumber);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[#FAF8F5] border border-[#162B21] text-xs uppercase tracking-wider text-[#162B21] font-semibold hover:bg-[#F2EDE4] transition-colors cursor-pointer"
+                >
+                  <Truck className="w-4 h-4 text-[#C5A059]" />
+                  <span>Live Courier Radar</span>
+                </button>
+              )}
+            </div>
 
             <button
               onClick={() => {
                 onClose();
                 onContinueShopping();
               }}
-              className="w-full sm:w-auto px-8 py-3 bg-[#162B21] hover:bg-[#234233] text-[#FAF8F5] text-xs uppercase tracking-[0.2em] font-semibold transition-colors cursor-pointer"
+              className="px-8 py-3 bg-[#162B21] hover:bg-[#234233] text-[#FAF8F5] text-xs uppercase tracking-[0.2em] font-semibold transition-colors cursor-pointer"
             >
-              Return to Catalog
+              Continue Exploring
             </button>
           </div>
         </div>

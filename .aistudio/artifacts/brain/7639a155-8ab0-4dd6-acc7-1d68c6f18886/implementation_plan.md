@@ -12,6 +12,13 @@ An editorial, high-craft digital flagship for **Kāshida Couture**, celebrating 
 - **Confirmed Brand Identity**: **Kāshida Couture** (*"Haute Artisanat Du Kashmir"*), emphasizing royal valley heritage, 150-year master artisan legacy, and made-to-order bespoke craftsmanship.
 - **Confirmed Storefront Focus**: **Apparel & Heritage Textiles**, led by handcrafted velvet & wool pherans (Aari & Tilla needlework), silk chanderi kurtas, hand-spun GI Pashmina shawls, and woven silk stoles.
 - **Confirmed Payment & Checkout Architecture**: **Interactive Razorpay Test Gateway Simulation**, supporting instantaneous Card, UPI, and NetBanking testing with server-authoritative HMAC signature verification and post-order tracking dossiers.
+- **Confirmed Amazon/Flipkart-Tier Conversion Capabilities**:
+  - **Delivery Estimator & Pincode Checker**: Live calculation with delivery dates, countdown timer for same-day air dispatch, COD verification, and insured courier details.
+  - **Bank & Privilege Offers Widget**: Instant card rebates (HDFC/ICICI/Amex), No-Cost EMI plans from leading banks, and welcome codes.
+  - **Frequently Bought Together**: 3-piece ensemble bundling with dynamic 15% discount calculation and 1-click multi-item bag allocation.
+  - **Sticky Bottom Fast Buy Bar**: Appears on PDP scroll with product snapshot, variant tags, "Add to Bag", and high-contrast "⚡ Fast Buy" direct checkout.
+  - **Patron Reviews & Community Q&A**: 5-star distribution percentage bars with star filtering, customer photo unboxing gallery, and interactive questions answered by Srinagar master weavers.
+  - **Save for Later Shelf**: In the Silk Bag (Cart Drawer), allowing customers to save pieces for later without losing them.
 
 ---
 

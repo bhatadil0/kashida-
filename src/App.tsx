@@ -72,8 +72,58 @@ export default function App() {
   }, [categories]);
 
   // Navigation and Active View State
-  const [currentView, setCurrentView] = useState<'home' | 'catalog' | 'pdp' | 'admin'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'catalog' | 'pdp' | 'admin'>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (
+        params.get('admin') === 'true' ||
+        params.get('view') === 'admin' ||
+        window.location.hash === '#admin' ||
+        window.location.pathname === '/admin' ||
+        window.location.pathname.startsWith('/admin')
+      ) {
+        return 'admin';
+      }
+    }
+    return 'home';
+  });
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (currentView === 'admin') {
+        url.searchParams.set('admin', 'true');
+        window.history.replaceState({}, '', url.toString());
+      } else {
+        if (url.searchParams.has('admin') || url.searchParams.has('view')) {
+          url.searchParams.delete('admin');
+          url.searchParams.delete('view');
+          window.history.replaceState({}, '', url.toString());
+        }
+      }
+    }
+  }, [currentView]);
+
+  useEffect(() => {
+    const handleUrlChange = () => {
+      const params = new URLSearchParams(window.location.search);
+      if (
+        params.get('admin') === 'true' ||
+        params.get('view') === 'admin' ||
+        window.location.hash === '#admin' ||
+        window.location.pathname.startsWith('/admin')
+      ) {
+        setCurrentView('admin');
+      }
+    };
+    window.addEventListener('popstate', handleUrlChange);
+    window.addEventListener('hashchange', handleUrlChange);
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+      window.removeEventListener('hashchange', handleUrlChange);
+    };
+  }, []);
 
   // Payment Gateway Configuration (Managed by Admin)
   const [paymentConfig, setPaymentConfig] = useState<PaymentGatewayConfig>(() => {
@@ -847,6 +897,7 @@ export default function App() {
         onProceedToCheckout={() => setIsCheckoutOpen(true)}
         appliedCoupon={appliedCoupon}
         onApplyCoupon={setAppliedCoupon}
+        onMoveToBag={(p, sz, col, qty) => handleAddToCart(p, sz, col, qty)}
       />
 
       {/* Wishlist Drawer */}

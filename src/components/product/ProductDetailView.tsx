@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   ShieldCheck,
   Truck,
@@ -12,12 +12,18 @@ import {
   Sparkles,
   ArrowLeft,
   Send,
+  Scissors,
+  Award,
 } from 'lucide-react';
 import { Product, Review, SEOConfig } from '../../types';
 import { SizeChartModal } from './SizeChartModal';
 import { calculateProductSEOScore } from '../../utils/seoHealth';
 import { formatPrice } from '../../utils/currency';
-import { Scissors, Award } from 'lucide-react';
+import { DeliveryEstimator } from './DeliveryEstimator';
+import { BankOffersWidget } from './BankOffersWidget';
+import { FrequentlyBoughtTogether } from './FrequentlyBoughtTogether';
+import { StickyFastBuyBar } from './StickyFastBuyBar';
+import { CustomerReviewsBreakdown } from './CustomerReviewsBreakdown';
 
 interface ProductDetailViewProps {
   product: Product;
@@ -65,6 +71,20 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   const [isSizeChartOpen, setIsSizeChartOpen] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [addedNotice, setAddedNotice] = useState(false);
+  const [showStickyBar, setShowStickyBar] = useState(false);
+  const buySectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (buySectionRef.current) {
+        const rect = buySectionRef.current.getBoundingClientRect();
+        // Show sticky bar once user scrolls past the main buy box
+        setShowStickyBar(rect.bottom < 80);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Review submission state
   const [reviewsList, setReviewsList] = useState<Review[]>(product.reviews);
@@ -279,6 +299,9 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
             </p>
           </div>
 
+          {/* Amazon/Flipkart-style Bank & Privilege Offers Widget */}
+          <BankOffersWidget basePrice={discountedPrice} currency={currency} />
+
           {/* Color Variant Selector */}
           <div className="space-y-2">
             <div className="flex justify-between items-center text-xs uppercase tracking-wider text-[#1C1F1E]">
@@ -370,8 +393,8 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
             )}
           </div>
 
-          {/* Quantity & Actions */}
-          <div className="space-y-3 pt-2">
+          {/* Quantity & Actions (with buySectionRef for Sticky Bar detection) */}
+          <div ref={buySectionRef} className="space-y-3 pt-2">
             <div className="flex items-center gap-4">
               <div className="flex items-center border border-[#EBE4D8] bg-[#FAF8F5]">
                 <button
@@ -423,11 +446,11 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
               </button>
             </div>
 
-            {/* Direct Buy Now Button */}
+            {/* Direct Buy Now Button (High-Contrast Amazon/Flipkart style) */}
             <button
               onClick={handleBuy}
               disabled={isOutOfStock}
-              className="w-full py-3.5 px-6 border border-[#C5A059] bg-[#FAF8F5] hover:bg-[#C5A059] hover:text-[#FAF8F5] text-[#162B21] text-xs uppercase tracking-[0.2em] font-semibold transition-all cursor-pointer shadow-xs"
+              className="w-full py-3.5 px-6 border border-[#C5A059] bg-[#FAF8F5] hover:bg-[#C5A059] hover:text-[#FAF8F5] text-[#162B21] text-xs uppercase tracking-[0.2em] font-bold transition-all cursor-pointer shadow-xs"
             >
               Direct Reserve & Checkout
             </button>
@@ -444,6 +467,9 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
               </button>
             )}
           </div>
+
+          {/* Amazon/Flipkart-style Instant Delivery Estimator & Pincode Checker */}
+          <DeliveryEstimator basePrice={discountedPrice} currency={currency} />
 
           {/* Content Quality Score UI Element (User Requirement) */}
           <div className="p-4 bg-[#FAF8F5] border border-[#EBE4D8] rounded-xs space-y-2.5">
@@ -569,6 +595,14 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
         </div>
       </div>
 
+      {/* Amazon-style Frequently Bought Together Ensemble Module */}
+      <FrequentlyBoughtTogether
+        currentProduct={product}
+        allProducts={allProducts}
+        currency={currency}
+        onAddToCart={onAddToCart}
+      />
+
       {/* Tabs Section: Craftsmanship, Care/Ingredients, Shipping, Reviews & SEO Dossier */}
       <div id="pdp-tabs" className="mt-16 pt-8 border-t border-[#F2EDE4]">
         <div className="flex space-x-8 border-b border-[#F2EDE4] overflow-x-auto pb-3 text-xs uppercase tracking-[0.2em] font-medium">
@@ -682,112 +716,17 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
           )}
 
           {activeTab === 'reviews' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-serif text-xl text-[#162B21]">
-                    Customer Impressions
-                  </h3>
-                  <p className="text-xs text-[#525B56]">
-                    Average score of {product.rating} / 5 based on verified atelier purchases.
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => setReviewFormOpen(!reviewFormOpen)}
-                  className="px-4 py-2 border border-[#162B21] hover:bg-[#162B21] hover:text-[#FAF8F5] text-xs uppercase tracking-wider transition-colors cursor-pointer"
-                >
-                  {reviewFormOpen ? 'Cancel' : 'Write a Review'}
-                </button>
-              </div>
-
-              {/* Review submission form */}
-              {reviewFormOpen && (
-                <form
-                  onSubmit={handleAddReview}
-                  className="p-5 bg-[#F2EDE4]/60 border border-[#EBE4D8] rounded-xs space-y-3 animate-in fade-in"
-                >
-                  <h4 className="text-xs uppercase tracking-wider font-semibold text-[#162B21]">
-                    Submit Your Impression
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <input
-                      type="text"
-                      placeholder="Your Name / Title"
-                      value={newReviewAuthor}
-                      onChange={(e) => setNewReviewAuthor(e.target.value)}
-                      required
-                      className="p-2 border border-[#EBE4D8] bg-[#FAF8F5] focus:outline-none focus:border-[#C5A059]"
-                    />
-                    <div className="flex items-center gap-2 p-2 bg-[#FAF8F5] border border-[#EBE4D8]">
-                      <span className="text-[11px] text-[#525B56]">Rating:</span>
-                      <select
-                        value={newReviewRating}
-                        onChange={(e) => setNewReviewRating(Number(e.target.value))}
-                        className="bg-transparent focus:outline-none cursor-pointer"
-                      >
-                        <option value={5}>5 Stars - Flawless Heirloom</option>
-                        <option value={4}>4 Stars - Exquisite Quality</option>
-                        <option value={3}>3 Stars - Good Craftsmanship</option>
-                      </select>
-                    </div>
-                  </div>
-                  <textarea
-                    rows={3}
-                    placeholder="Describe the texture, embroidery detail, or drape..."
-                    value={newReviewComment}
-                    onChange={(e) => setNewReviewComment(e.target.value)}
-                    required
-                    className="w-full p-2 border border-[#EBE4D8] bg-[#FAF8F5] text-xs focus:outline-none focus:border-[#C5A059]"
-                  />
-                  <button
-                    type="submit"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#162B21] text-[#FAF8F5] text-xs uppercase tracking-wider font-semibold cursor-pointer"
-                  >
-                    <Send className="w-3.5 h-3.5 text-[#DFC289]" />
-                    <span>Publish Impression</span>
-                  </button>
-                </form>
-              )}
-
-              {/* Reviews List */}
-              <div className="space-y-4">
-                {reviewsList.map((rev) => (
-                  <div
-                    key={rev.id}
-                    className="p-4 bg-[#FAF8F5] border border-[#EBE4D8] rounded-xs space-y-2"
-                  >
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <strong className="font-serif text-sm text-[#162B21]">{rev.author}</strong>
-                        {rev.verified && (
-                          <span className="text-[10px] uppercase tracking-wider text-[#C5A059] font-medium">
-                            ✓ Verified Patron
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-[11px] text-[#525B56]/70">{rev.date}</span>
-                    </div>
-
-                    <div className="flex text-[#C5A059]">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-3 h-3 ${
-                            i < rev.rating
-                              ? 'fill-current stroke-none'
-                              : 'stroke-current fill-none'
-                          }`}
-                        />
-                      ))}
-                    </div>
-
-                    <p className="text-xs text-[#1C1F1E] font-medium">{rev.title}</p>
-                    <p className="text-xs text-[#525B56] leading-relaxed">{rev.comment}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <CustomerReviewsBreakdown
+              productName={product.name}
+              rating={product.rating}
+              reviews={reviewsList}
+              onAddReview={(newRev) => {
+                setReviewsList([newRev, ...reviewsList]);
+                if (onAddReview) {
+                  onAddReview(product.id, newRev);
+                }
+              }}
+            />
           )}
 
           {activeTab === 'seo_score' && (
@@ -959,6 +898,19 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
         isOpen={isSizeChartOpen}
         onClose={() => setIsSizeChartOpen(false)}
         category={product.category}
+      />
+
+      {/* Amazon/Flipkart Sticky Bottom Fast Buy Bar */}
+      <StickyFastBuyBar
+        product={product}
+        selectedSize={selectedSize}
+        selectedColor={selectedColor}
+        currency={currency}
+        isWishlisted={isWishlisted}
+        onToggleWishlist={() => onToggleWishlist(product)}
+        onAddToCart={handleAdd}
+        onBuyNow={handleBuy}
+        isVisible={showStickyBar}
       />
     </div>
   );

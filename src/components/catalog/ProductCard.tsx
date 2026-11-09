@@ -132,7 +132,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         {/* Price Baseline */}
         <div className="mt-2.5 flex items-baseline gap-2.5">
-          <span className="font-mono text-base font-medium text-[#162B21] tabular-nums">
+          <span className="font-mono text-base font-semibold text-[#162B21] tabular-nums">
             {formatPrice(discountedPrice, currency)}
           </span>
           {product.discountPercent > 0 && (
@@ -140,6 +140,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               {formatPrice(product.basePrice, currency)}
             </span>
           )}
+        </div>
+
+        {/* Amazon/Flipkart-style Fast Delivery Assurance */}
+        <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-emerald-800 font-medium">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0" />
+          <span>⚡ FREE Air Courier · Ready in Atelier</span>
         </div>
       </div>
     </div>

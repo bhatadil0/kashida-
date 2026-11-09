@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { X, Trash2, ShoppingBag, ArrowRight, ShieldCheck, Tag, Gift, Sparkles } from 'lucide-react';
-import { CartItem, Coupon } from '../../types';
+import React, { useState, useEffect } from 'react';
+import { X, Trash2, ShoppingBag, ArrowRight, ShieldCheck, Tag, Gift, Sparkles, Bookmark, RotateCcw } from 'lucide-react';
+import { CartItem, Coupon, Product } from '../../types';
 import { PROMO_COUPONS } from '../../data/products';
 import { formatPrice } from '../../utils/currency';
 
@@ -14,6 +14,7 @@ interface CartDrawerProps {
   onProceedToCheckout: () => void;
   appliedCoupon: Coupon | null;
   onApplyCoupon: (coupon: Coupon | null) => void;
+  onMoveToBag?: (product: Product, size: string, color: string, quantity: number) => void;
 }
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({
@@ -26,12 +27,46 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onProceedToCheckout,
   appliedCoupon,
   onApplyCoupon,
+  onMoveToBag,
 }) => {
   const [couponInput, setCouponInput] = useState('');
   const [couponError, setCouponError] = useState('');
   const [couponSuccess, setCouponSuccess] = useState('');
   const [isGiftPackaging, setIsGiftPackaging] = useState(false);
   const [giftNote, setGiftNote] = useState('');
+
+  // Amazon/Flipkart style "Save for Later"
+  const [savedForLater, setSavedForLater] = useState<CartItem[]>(() => {
+    const saved = localStorage.getItem('kashida_saved_for_later');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('kashida_saved_for_later', JSON.stringify(savedForLater));
+  }, [savedForLater]);
+
+  const handleSaveForLater = (item: CartItem) => {
+    setSavedForLater((prev) => [item, ...prev.filter((i) => i.id !== item.id)]);
+    onRemoveItem(item.id);
+  };
+
+  const handleMoveBackToBag = (item: CartItem) => {
+    if (onMoveToBag) {
+      onMoveToBag(item.product, item.size, item.color, item.quantity);
+    }
+    setSavedForLater((prev) => prev.filter((i) => i.id !== item.id));
+  };
+
+  const handleRemoveSavedItem = (id: string) => {
+    setSavedForLater((prev) => prev.filter((i) => i.id !== id));
+  };
 
   if (!isOpen) return null;
 
@@ -192,10 +227,20 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           </button>
                         </div>
 
-                        {/* Line Subtotal */}
-                        <span className="font-mono text-sm font-semibold text-[#162B21] tabular-nums">
-                          {formatPrice(item.unitPrice * item.quantity, currency)}
-                        </span>
+                        {/* Line Subtotal & Save for Later */}
+                        <div className="text-right">
+                          <span className="font-mono text-sm font-semibold text-[#162B21] tabular-nums block">
+                            {formatPrice(item.unitPrice * item.quantity, currency)}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleSaveForLater(item)}
+                            className="inline-flex items-center gap-1 text-[10px] text-[#C5A059] hover:text-[#162B21] cursor-pointer mt-0.5"
+                          >
+                            <Bookmark className="w-2.5 h-2.5" />
+                            <span>Save for later</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -232,6 +277,67 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       className="w-full text-xs p-2 bg-white border border-[#EBE4D8] focus:border-[#C5A059] outline-none"
                     />
                   )}
+                </div>
+              </div>
+            )}
+
+            {/* Amazon/Flipkart-style "Saved for Later" Shelf */}
+            {savedForLater.length > 0 && (
+              <div className="mt-8 pt-6 border-t border-[#EBE4D8] space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Bookmark className="w-4 h-4 text-[#C5A059]" />
+                    <h3 className="font-serif text-sm font-semibold text-[#162B21]">
+                      Saved for Later ({savedForLater.length})
+                    </h3>
+                  </div>
+                  <span className="text-[10px] text-[#525B56]">
+                    Ready when you wish to reserve
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {savedForLater.map((savedItem) => (
+                    <div
+                      key={savedItem.id}
+                      className="p-3 bg-white border border-[#EBE4D8] rounded-xs flex gap-3 items-center justify-between shadow-2xs"
+                    >
+                      <img
+                        src={savedItem.product.primaryImage}
+                        alt={savedItem.product.name}
+                        className="w-12 h-16 object-cover rounded-xs border border-[#EBE4D8] shrink-0"
+                      />
+
+                      <div className="flex-1 min-w-0 pr-2">
+                        <h4 className="font-serif text-xs text-[#162B21] font-semibold truncate">
+                          {savedItem.product.name}
+                        </h4>
+                        <p className="text-[10px] text-[#525B56]">
+                          Size: {savedItem.size} · Color: {savedItem.color}
+                        </p>
+                        <p className="font-mono text-xs font-semibold text-[#162B21] mt-0.5">
+                          {formatPrice(savedItem.unitPrice, currency)}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleMoveBackToBag(savedItem)}
+                          className="px-2.5 py-1 bg-[#162B21] text-[#FAF8F5] text-[10px] uppercase tracking-wider font-semibold hover:bg-[#234233] cursor-pointer"
+                        >
+                          Move to Bag
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSavedItem(savedItem.id)}
+                          className="text-[10px] text-[#681A24] hover:underline text-center cursor-pointer"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

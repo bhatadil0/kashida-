@@ -10,6 +10,7 @@ import {
   SEOConfig,
   CategoryConfig,
   Review,
+  UserAccount,
 } from './types';
 import { INITIAL_PRODUCTS, PROMO_COUPONS, INITIAL_CATEGORIES } from './data/products';
 import { AnnouncementBar } from './components/layout/AnnouncementBar';
@@ -30,6 +31,7 @@ import { OrderConfirmationModal } from './components/checkout/OrderConfirmationM
 import { AdminOperationsModal } from './components/admin/AdminOperationsModal';
 import { AdminPortalView } from './components/admin/AdminPortalView';
 import { CustomerPortalModal } from './components/account/CustomerPortalModal';
+import { AuthModal } from './components/account/AuthModal';
 import { TrackOrderModal } from './components/checkout/TrackOrderModal';
 import { GIVerificationModal } from './components/product/GIVerificationModal';
 import { BespokeInquiryModal } from './components/product/BespokeInquiryModal';
@@ -330,11 +332,103 @@ export default function App() {
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isCustomerPortalOpen, setIsCustomerPortalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isTrackOrderOpen, setIsTrackOrderOpen] = useState(false);
   const [trackingOrderNumber, setTrackingOrderNumber] = useState('KASH-849201');
   const [isGIModalOpen, setIsGIModalOpen] = useState(false);
   const [isBespokeModalOpen, setIsBespokeModalOpen] = useState(false);
   const [isConciergeOpen, setIsConciergeOpen] = useState(false);
+
+  // User Accounts & Authentication State
+  const [registeredUsers, setRegisteredUsers] = useState<UserAccount[]>(() => {
+    const saved = localStorage.getItem('kashida_registered_users');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return [
+      {
+        id: 'patron_soraya',
+        email: 'soraya@kashida-patron.com',
+        fullName: 'Lady Soraya Bakhtiar',
+        phone: '+91 98112 34567',
+        passwordHash: '8e815e45a2faeb2ff5d564fa7e8d641d4c2b921fa940e4fe33ec27de86bfd895',
+        vipTier: 'Mughal Court VIP Connoisseur',
+        loyaltyPoints: 1250,
+        createdAt: '2026-01-15T00:00:00Z',
+        twoFactorEnabled: false,
+        addresses: [
+          {
+            id: 'addr_1',
+            isDefault: true,
+            label: 'Home Sanctuary',
+            fullName: 'Lady Soraya Bakhtiar',
+            phone: '+91 98112 34567',
+            streetLine1: 'Boulevard Road, Dal Lake Sanctuary',
+            city: 'Srinagar',
+            state: 'Jammu & Kashmir',
+            postalCode: '190001',
+            country: 'India',
+          },
+        ],
+        measurements: {
+          chestInches: '38',
+          shoulderInches: '15',
+          sleeveInches: '22.5',
+          heightFeet: '5\'7"',
+          preferredFit: 'Royal Relaxed Drape',
+          monogramInitials: 'SB',
+        },
+      },
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('kashida_registered_users', JSON.stringify(registeredUsers));
+  }, [registeredUsers]);
+
+  const [currentUser, setCurrentUser] = useState<UserAccount | null>(() => {
+    const saved = localStorage.getItem('kashida_current_user');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return null;
+  });
+
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('kashida_current_user', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('kashida_current_user');
+    }
+  }, [currentUser]);
+
+  const handleRegisterUser = (newUser: UserAccount) => {
+    setRegisteredUsers((prev) => [newUser, ...prev.filter((u) => u.email !== newUser.email)]);
+  };
+
+  const handleUpdateUser = (updatedUser: UserAccount) => {
+    setCurrentUser(updatedUser);
+    setRegisteredUsers((prev) =>
+      prev.map((u) => (u.id === updatedUser.id ? updatedUser : u))
+    );
+  };
+
+  const handleLoginUser = (user: UserAccount) => {
+    setCurrentUser(user);
+    setIsAuthModalOpen(false);
+  };
+
+  const handleLogoutUser = () => {
+    setCurrentUser(null);
+  };
 
   // Cart operations
   const handleAddToCart = (
@@ -480,6 +574,15 @@ export default function App() {
     setIsCheckoutOpen(false);
     setLastCompletedOrder(newOrder);
     setIsOrderConfirmationOpen(true);
+
+    if (currentUser) {
+      const pointsEarned = Math.round(newOrder.totalAmount * 0.05);
+      const updatedUser: UserAccount = {
+        ...currentUser,
+        loyaltyPoints: (currentUser.loyaltyPoints || 0) + pointsEarned,
+      };
+      handleUpdateUser(updatedUser);
+    }
   };
 
   // Admin status transition
@@ -696,6 +799,8 @@ export default function App() {
         onOpenWishlist={() => setIsWishlistOpen(true)}
         onOpenAdmin={() => setCurrentView('admin')}
         onOpenCustomerPortal={() => setIsCustomerPortalOpen(true)}
+        currentUser={currentUser}
+        onOpenAuthModal={() => setIsAuthModalOpen(true)}
         onOpenTrackOrder={() => {
           setTrackingOrderNumber('KASH-849201');
           setIsTrackOrderOpen(true);
@@ -917,6 +1022,7 @@ export default function App() {
         appliedCoupon={appliedCoupon}
         paymentConfig={paymentConfig}
         currency={currency}
+        currentUser={currentUser}
         onOrderSuccess={handleOrderSuccess}
       />
 
@@ -940,6 +1046,10 @@ export default function App() {
       <CustomerPortalModal
         isOpen={isCustomerPortalOpen}
         onClose={() => setIsCustomerPortalOpen(false)}
+        currentUser={currentUser}
+        onUpdateUser={handleUpdateUser}
+        onLogout={handleLogoutUser}
+        onOpenAuthModal={() => setIsAuthModalOpen(true)}
         orders={orders}
         currency={currency}
         onTrackOrder={(ordNum) => {
@@ -950,6 +1060,15 @@ export default function App() {
           setLastCompletedOrder(ord);
           setIsOrderConfirmationOpen(true);
         }}
+      />
+
+      {/* Patron Authentication Modal (Sign In, Create Account, Forgot Passphrase) */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onLoginSuccess={handleLoginUser}
+        registeredUsers={registeredUsers}
+        onRegisterUser={handleRegisterUser}
       />
 
       {/* Public Order Tracking Radar Modal */}

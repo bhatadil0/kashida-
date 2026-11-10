@@ -191,4 +191,51 @@ export interface CatalogSEOHealthSummary {
   topMissingKeywords: { keyword: string; missingInCount: number }[];
 }
 
+export interface UserAddress {
+  id: string;
+  isDefault: boolean;
+  label: 'Home Sanctuary' | 'Atelier' | 'Office' | string;
+  fullName: string;
+  phone: string;
+  streetLine1: string;
+  streetLine2?: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+}
+
+export interface UserMeasurements {
+  chestInches: string;
+  shoulderInches: string;
+  sleeveInches: string;
+  heightFeet: string;
+  waistInches?: string;
+  preferredFit: 'Royal Relaxed Drape' | 'Contemporary Structured' | 'Traditional Imperial';
+  monogramInitials?: string;
+}
+
+export interface UserAccount {
+  id: string;
+  email: string;
+  fullName: string;
+  phone: string;
+  passwordHash: string;
+  vipTier: 'Patron Associate' | 'Kashmir Royal Guild' | 'Mughal Court VIP Connoisseur';
+  loyaltyPoints: number;
+  createdAt: string;
+  twoFactorEnabled: boolean;
+  addresses: UserAddress[];
+  measurements: UserMeasurements;
+}
+
+export interface AdminSecurityConfig {
+  adminEmail: string;
+  passwordHash: string;
+  twoFactorEnabled: boolean;
+  lastLoginTimestamp?: string;
+  sessionTimeoutMinutes: number;
+}
+
+
 

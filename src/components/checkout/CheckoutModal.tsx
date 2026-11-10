@@ -12,7 +12,7 @@ import {
   Banknote,
   Smartphone,
 } from 'lucide-react';
-import { CartItem, Coupon, OrderDossier, ShippingAddress, PaymentGatewayConfig } from '../../types';
+import { CartItem, Coupon, OrderDossier, ShippingAddress, PaymentGatewayConfig, UserAccount } from '../../types';
 import { formatPrice } from '../../utils/currency';
 
 interface CheckoutModalProps {
@@ -22,6 +22,7 @@ interface CheckoutModalProps {
   appliedCoupon: Coupon | null;
   paymentConfig?: PaymentGatewayConfig;
   currency?: string;
+  currentUser?: UserAccount | null;
   onOrderSuccess: (order: OrderDossier) => void;
 }
 
@@ -32,6 +33,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   appliedCoupon,
   paymentConfig,
   currency = 'INR',
+  currentUser,
   onOrderSuccess,
 }) => {
   const [step, setStep] = useState<1 | 2>(1);
@@ -39,24 +41,40 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [formError, setFormError] = useState('');
 
-  // Shipping form state
-  const [address, setAddress] = useState<ShippingAddress>({
-    fullName: 'Lady Noor Jahan',
-    email: 'noor.jahan@heritage.org',
-    phone: '+91 98765 43210',
-    streetLine1: 'Boulvard Road, Dal Lake View Estates',
-    streetLine2: 'Pavilion Suite 4B',
-    city: 'Srinagar',
-    state: 'Jammu & Kashmir',
-    postalCode: '190001',
-    country: 'India',
+  // Shipping form state with automatic patron pre-fill
+  const [address, setAddress] = useState<ShippingAddress>(() => {
+    if (currentUser) {
+      const defaultAddr = currentUser.addresses.find((a) => a.isDefault) || currentUser.addresses[0];
+      return {
+        fullName: defaultAddr?.fullName || currentUser.fullName,
+        email: currentUser.email,
+        phone: defaultAddr?.phone || currentUser.phone,
+        streetLine1: defaultAddr?.streetLine1 || 'Boulevard Road, Dal Lake Sanctuary',
+        streetLine2: defaultAddr?.streetLine2 || '',
+        city: defaultAddr?.city || 'Srinagar',
+        state: defaultAddr?.state || 'Jammu & Kashmir',
+        postalCode: defaultAddr?.postalCode || '190001',
+        country: defaultAddr?.country || 'India',
+      };
+    }
+    return {
+      fullName: 'Soraya Bakhtiar',
+      email: 'soraya@kashida-patron.com',
+      phone: '+91 98765 43210',
+      streetLine1: 'Boulevard Road, Dal Lake Sanctuary',
+      streetLine2: 'Atelier Pavilion',
+      city: 'Srinagar',
+      state: 'Jammu & Kashmir',
+      postalCode: '190001',
+      country: 'India',
+    };
   });
 
   // Card details state
   const [cardNumber, setCardNumber] = useState('4000 1234 5678 9010');
   const [cardExpiry, setCardExpiry] = useState('12/28');
   const [cardCvv, setCardCvv] = useState('888');
-  const [cardHolder, setCardHolder] = useState('NOOR JAHAN');
+  const [cardHolder, setCardHolder] = useState(currentUser?.fullName.toUpperCase() || 'SORAYA BAKHTIAR');
 
   // UPI test state
   const [upiId, setUpiId] = useState('patron@okhdfcbank');

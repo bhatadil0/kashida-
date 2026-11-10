@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, ShoppingBag, Heart, Shield, Menu, X, User, Truck, Sparkles } from 'lucide-react';
-import { ProductCategory, CategoryConfig } from '../../types';
+import { ProductCategory, CategoryConfig, UserAccount } from '../../types';
 
 interface NavbarProps {
   activeCategory: ProductCategory;
@@ -8,11 +8,13 @@ interface NavbarProps {
   cartCount: number;
   wishlistCount: number;
   categories?: CategoryConfig[];
+  currentUser?: UserAccount | null;
   onOpenSearch: () => void;
   onOpenCart: () => void;
   onOpenWishlist: () => void;
   onOpenAdmin: () => void;
   onOpenCustomerPortal?: () => void;
+  onOpenAuthModal?: () => void;
   onOpenTrackOrder?: () => void;
   onOpenConcierge?: () => void;
   onNavigateHome: () => void;
@@ -24,11 +26,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   cartCount,
   wishlistCount,
   categories,
+  currentUser,
   onOpenSearch,
   onOpenCart,
   onOpenWishlist,
   onOpenAdmin,
   onOpenCustomerPortal,
+  onOpenAuthModal,
   onOpenTrackOrder,
   onOpenConcierge,
   onNavigateHome,
@@ -127,19 +131,28 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           {/* Patron VIP Account Portal Button */}
-          {onOpenCustomerPortal && (
-            <button
-              onClick={onOpenCustomerPortal}
-              className="p-1.5 hover:text-[#C5A059] transition-colors cursor-pointer group flex items-center gap-1.5"
-              aria-label="Patron VIP Portal & Commissions"
-              title="Patron VIP Account & Commissions"
-            >
+          <button
+            onClick={() => {
+              if (currentUser) {
+                onOpenCustomerPortal?.();
+              } else {
+                onOpenAuthModal?.();
+              }
+            }}
+            className="p-1.5 hover:text-[#C5A059] transition-colors cursor-pointer group flex items-center gap-1.5"
+            aria-label="Patron VIP Portal & Commissions"
+            title={currentUser ? `Signed in as ${currentUser.fullName}` : 'Sign in to Patron Account'}
+          >
+            <div className="relative">
               <User className="w-5 h-5 stroke-[1.5]" />
-              <span className="hidden xl:inline text-xs tracking-wider text-[#525B56] group-hover:text-[#C5A059]">
-                Patron VIP
-              </span>
-            </button>
-          )}
+              {currentUser && (
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-600 border border-white" />
+              )}
+            </div>
+            <span className="hidden xl:inline text-xs tracking-wider text-[#525B56] group-hover:text-[#C5A059]">
+              {currentUser ? currentUser.fullName.split(' ')[0] : 'Sign In'}
+            </span>
+          </button>
 
           <button
             onClick={onOpenCart}
@@ -192,18 +205,25 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           <div className="pt-4 border-t border-[#F2EDE4] space-y-3">
-            {onOpenCustomerPortal && (
-              <button
-                onClick={() => {
-                  onOpenCustomerPortal();
-                  setMobileMenuOpen(false);
-                }}
-                className="w-full text-left text-xs uppercase tracking-wider text-[#162B21] flex items-center gap-2 font-medium"
-              >
+            <button
+              onClick={() => {
+                if (currentUser) {
+                  onOpenCustomerPortal?.();
+                } else {
+                  onOpenAuthModal?.();
+                }
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left text-xs uppercase tracking-wider text-[#162B21] flex items-center justify-between font-semibold p-2 bg-[#F2EDE4]/60 rounded-xs"
+            >
+              <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-[#C5A059]" />
-                <span>Patron VIP Dossier & Measurements</span>
-              </button>
-            )}
+                <span>{currentUser ? `Patron: ${currentUser.fullName}` : 'Sign In / Register Account'}</span>
+              </div>
+              <span className="text-[10px] text-[#C5A059] font-mono">
+                {currentUser ? currentUser.vipTier.split(' ')[0] : 'VIP Welcome'}
+              </span>
+            </button>
 
             {onOpenTrackOrder && (
               <button

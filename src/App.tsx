@@ -149,6 +149,10 @@ export default function App() {
       netbankingEnabled: true,
       autoCapture: true,
       lastTestedAt: 'Just now',
+      paytmQrEnabled: true,
+      paytmUpiId: 'humperszk@paytm',
+      paytmMerchantName: 'Kāshida Couture & Heritage',
+      paytmMerchantCode: 'KASHIDA001',
     };
   });
 
@@ -351,6 +355,41 @@ export default function App() {
     }
     return [
       {
+        id: 'patron_humperszk',
+        email: 'humperszk@gmail.com',
+        fullName: 'Humper S. (Founder & Chief Curator)',
+        phone: '+91 98765 00001',
+        passwordHash: '8e815e45a2faeb2ff5d564fa7e8d641d4c2b921fa940e4fe33ec27de86bfd895',
+        vipTier: 'Mughal Court VIP Connoisseur',
+        loyaltyPoints: 50000,
+        createdAt: '2026-01-01T00:00:00Z',
+        twoFactorEnabled: true,
+        role: 'ADMIN',
+        addresses: [
+          {
+            id: 'addr_humperszk_1',
+            isDefault: true,
+            label: 'Atelier Head Office & Sanctuary',
+            fullName: 'Humper S.',
+            phone: '+91 98765 00001',
+            streetLine1: 'Kāshida Royal Atelier, Heritage Complex',
+            streetLine2: 'Old Secretariat Boulevard',
+            city: 'Srinagar',
+            state: 'Jammu & Kashmir',
+            postalCode: '190001',
+            country: 'India',
+          },
+        ],
+        measurements: {
+          chestInches: '42',
+          shoulderInches: '18.5',
+          sleeveInches: '26',
+          heightFeet: "5'11\"",
+          preferredFit: 'Royal Relaxed Drape',
+          monogramInitials: 'HS',
+        },
+      },
+      {
         id: 'patron_soraya',
         email: 'soraya@kashida-patron.com',
         fullName: 'Lady Soraya Bakhtiar',
@@ -411,7 +450,17 @@ export default function App() {
   }, [currentUser]);
 
   const handleRegisterUser = (newUser: UserAccount) => {
-    setRegisteredUsers((prev) => [newUser, ...prev.filter((u) => u.email !== newUser.email)]);
+    const isFounder = newUser.email.toLowerCase() === 'humperszk@gmail.com';
+    const enhanced: UserAccount = {
+      ...newUser,
+      role: isFounder ? 'ADMIN' : newUser.role || 'PATRON',
+      vipTier: isFounder ? 'Mughal Court VIP Connoisseur' : newUser.vipTier,
+      loyaltyPoints: isFounder ? Math.max(newUser.loyaltyPoints, 50000) : newUser.loyaltyPoints,
+    };
+    if (isFounder) {
+      localStorage.setItem('kashida_admin_auth', 'true');
+    }
+    setRegisteredUsers((prev) => [enhanced, ...prev.filter((u) => u.email !== enhanced.email)]);
   };
 
   const handleUpdateUser = (updatedUser: UserAccount) => {
@@ -422,7 +471,17 @@ export default function App() {
   };
 
   const handleLoginUser = (user: UserAccount) => {
-    setCurrentUser(user);
+    const isFounder = user.email.toLowerCase() === 'humperszk@gmail.com';
+    const enhanced: UserAccount = {
+      ...user,
+      role: isFounder ? 'ADMIN' : user.role || 'PATRON',
+      vipTier: isFounder ? 'Mughal Court VIP Connoisseur' : user.vipTier,
+      loyaltyPoints: isFounder ? Math.max(user.loyaltyPoints, 50000) : user.loyaltyPoints,
+    };
+    if (isFounder) {
+      localStorage.setItem('kashida_admin_auth', 'true');
+    }
+    setCurrentUser(enhanced);
     setIsAuthModalOpen(false);
   };
 
@@ -775,6 +834,38 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF8F5] text-[#1C1F1E]">
+      {/* Founder & Super Admin Header Bar if logged in as humperszk@gmail.com */}
+      {(currentUser?.email === 'humperszk@gmail.com' || currentUser?.role === 'ADMIN') && (
+        <div className="bg-[#162B21] text-[#DFC289] border-b border-[#C5A059]/40 px-4 py-2 text-xs flex flex-wrap items-center justify-between gap-3 shadow-md z-50">
+          <div className="flex items-center gap-2">
+            <span className="text-amber-400 text-sm">👑</span>
+            <span className="font-semibold text-white tracking-wide">
+              Atelier Founder & Master Admin: <span className="text-[#DFC289] font-mono">humperszk@gmail.com</span>
+            </span>
+            <span className="hidden sm:inline bg-[#234233] text-[#DFC289] px-2 py-0.5 text-[10px] rounded-xs font-mono uppercase border border-[#C5A059]/30">
+              Super Admin Active
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setCurrentView('admin')}
+              className="px-3 py-1 bg-[#C5A059] hover:bg-[#DFC289] text-[#162B21] font-bold text-[11px] uppercase tracking-wider rounded-xs cursor-pointer shadow-xs transition-colors"
+            >
+              Launch Admin Portal →
+            </button>
+            <button
+              onClick={() => {
+                setCurrentView('admin');
+              }}
+              className="text-[11px] text-[#DFC289] hover:underline cursor-pointer hidden md:inline"
+            >
+              Paytm QR & Gateways
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Top Announcement Bar */}
       <AnnouncementBar
         text={announcementText}

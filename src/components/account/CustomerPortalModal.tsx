@@ -302,16 +302,24 @@ export const CustomerPortalModal: React.FC<CustomerPortalModalProps> = ({
                 .toUpperCase()}
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <h3 className="font-serif text-lg tracking-wide text-[#FAF8F5]">
                   {currentUser.fullName}
                 </h3>
-                <span className="text-[10px] uppercase tracking-widest px-2 py-0.5 bg-[#C5A059]/20 text-[#DFC289] border border-[#C5A059]/30 font-medium">
-                  {currentUser.vipTier}
-                </span>
+                {currentUser.email.toLowerCase() === 'humperszk@gmail.com' || currentUser.role === 'ADMIN' ? (
+                  <span className="text-[10px] uppercase tracking-widest px-2.5 py-0.5 bg-[#C5A059] text-[#162B21] font-bold border border-[#DFC289] rounded-xs shadow-xs">
+                    👑 Atelier Founder & Master Admin
+                  </span>
+                ) : (
+                  <span className="text-[10px] uppercase tracking-widest px-2 py-0.5 bg-[#C5A059]/20 text-[#DFC289] border border-[#C5A059]/30 font-medium">
+                    {currentUser.vipTier}
+                  </span>
+                )}
               </div>
               <p className="text-xs text-[#FAF8F5]/70">
-                Patron ID: KASH-VIP-{currentUser.email.slice(0, 4).toUpperCase()} · Loyalty: {currentUser.loyaltyPoints} Points
+                {currentUser.email.toLowerCase() === 'humperszk@gmail.com'
+                  ? 'Master Curator Account (humperszk@gmail.com) · Unlimited Atelier Authority · 50,000 Points'
+                  : `Patron ID: KASH-VIP-${currentUser.email.slice(0, 4).toUpperCase()} · Loyalty: ${currentUser.loyaltyPoints} Points`}
               </p>
             </div>
           </div>
@@ -338,6 +346,29 @@ export const CustomerPortalModal: React.FC<CustomerPortalModalProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Founder Super Admin Direct Callout */}
+        {(currentUser.email.toLowerCase() === 'humperszk@gmail.com' || currentUser.role === 'ADMIN') && (
+          <div className="bg-[#DFC289]/20 border-b border-[#C5A059]/40 px-6 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#162B21]">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-[#162B21] shrink-0" />
+              <span className="font-semibold">
+                Founder Governance: Unrestricted access to products, Paytm QR gateway, order fulfillment, and SEO controls.
+              </span>
+            </div>
+            <a
+              href="/?admin=true"
+              onClick={(e) => {
+                e.preventDefault();
+                onClose();
+                window.location.search = '?admin=true';
+              }}
+              className="px-3.5 py-1.5 bg-[#162B21] hover:bg-[#234233] text-[#DFC289] text-[11px] uppercase tracking-wider font-bold rounded-xs cursor-pointer shadow-xs whitespace-nowrap self-start sm:self-auto transition-colors"
+            >
+              Open Admin Console →
+            </a>
+          </div>
+        )}
 
         {/* Tab Navigation */}
         <div className="flex border-b border-[#EBE4D8] bg-[#F2EDE4]/50 px-6 gap-6 text-xs uppercase tracking-wider font-medium overflow-x-auto">

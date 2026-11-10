@@ -114,8 +114,15 @@ export interface OrderDossier {
   status: OrderStatus;
   items: CartItem[];
   shippingAddress: ShippingAddress;
-  paymentMethod: 'RAZORPAY_UPI' | 'RAZORPAY_CARD' | 'COD';
+  paymentMethod: 'PAYTM_QR' | 'RAZORPAY_UPI' | 'RAZORPAY_CARD' | 'COD';
   paymentStatus: 'PAID' | 'PENDING';
+  paytmUtr?: string;
+  paytmVerified?: boolean;
+  giftPackaging?: {
+    isGift: boolean;
+    recipientName?: string;
+    giftMessage?: string;
+  };
   razorpayOrderId?: string;
   razorpayPaymentId?: string;
   subTotal: number;
@@ -146,6 +153,12 @@ export interface PaymentGatewayConfig {
   netbankingEnabled: boolean;
   autoCapture: boolean;
   lastTestedAt?: string;
+  // Paytm QR & Direct UPI Gateway Config
+  paytmQrEnabled: boolean;
+  paytmUpiId: string; // e.g. "humperszk@paytm"
+  paytmMerchantName: string; // e.g. "Kāshida Couture Srinagar"
+  paytmMerchantCode: string; // e.g. "KASHIDA001"
+  paytmCustomQrUrl?: string; // Optional custom merchant QR image URL
 }
 
 export interface SEOConfig {
@@ -225,6 +238,7 @@ export interface UserAccount {
   loyaltyPoints: number;
   createdAt: string;
   twoFactorEnabled: boolean;
+  role?: 'ADMIN' | 'PATRON';
   addresses: UserAddress[];
   measurements: UserMeasurements;
 }
@@ -235,6 +249,18 @@ export interface AdminSecurityConfig {
   twoFactorEnabled: boolean;
   lastLoginTimestamp?: string;
   sessionTimeoutMinutes: number;
+}
+
+export interface ProductQA {
+  id: string;
+  productId: string;
+  question: string;
+  askedBy: string;
+  askedAt: string;
+  answer: string;
+  answeredBy: string;
+  answeredAt: string;
+  helpfulCount: number;
 }
 
 

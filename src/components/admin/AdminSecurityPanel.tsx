@@ -270,11 +270,18 @@ export const AdminSecurityPanel: React.FC<AdminSecurityPanelProps> = ({
 
         {/* Card 2: Change Administrator Email */}
         <div className="p-6 bg-white border border-[#EBE4D8] rounded-xs space-y-4 shadow-xs">
-          <div className="flex items-center gap-2 border-b border-[#F2EDE4] pb-3">
-            <Mail className="w-4 h-4 text-[#C5A059]" />
-            <h4 className="font-serif text-base text-[#162B21] font-semibold">
-              Authorized Curator Work Email
-            </h4>
+          <div className="flex items-center justify-between border-b border-[#F2EDE4] pb-3">
+            <div className="flex items-center gap-2">
+              <Mail className="w-4 h-4 text-[#C5A059]" />
+              <h4 className="font-serif text-base text-[#162B21] font-semibold">
+                Authorized Curator Work Email
+              </h4>
+            </div>
+            {adminConfig.adminEmail.toLowerCase() === 'humperszk@gmail.com' && (
+              <span className="text-[10px] font-bold text-[#162B21] bg-[#C5A059] px-2 py-0.5 rounded-xs uppercase tracking-wider shadow-xs">
+                👑 Founder Account
+              </span>
+            )}
           </div>
 
           {emailMsg && (

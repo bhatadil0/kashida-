@@ -24,6 +24,8 @@ import { BankOffersWidget } from './BankOffersWidget';
 import { FrequentlyBoughtTogether } from './FrequentlyBoughtTogether';
 import { StickyFastBuyBar } from './StickyFastBuyBar';
 import { CustomerReviewsBreakdown } from './CustomerReviewsBreakdown';
+import { ProductQASection } from './ProductQASection';
+import { RecentlyViewed } from './RecentlyViewed';
 
 interface ProductDetailViewProps {
   product: Product;
@@ -67,7 +69,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   const [quantity, setQuantity] = useState<number>(1);
   const [isZoomed, setIsZoomed] = useState<boolean>(false);
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
-  const [activeTab, setActiveTab] = useState<'craft' | 'care' | 'shipping' | 'reviews' | 'seo_score'>('craft');
+  const [activeTab, setActiveTab] = useState<'craft' | 'care' | 'shipping' | 'reviews' | 'seo_score' | 'qa'>('craft');
   const [isSizeChartOpen, setIsSizeChartOpen] = useState<boolean>(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [addedNotice, setAddedNotice] = useState(false);
@@ -85,6 +87,20 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Track recently viewed products in localStorage for luxury patron convenience
+  useEffect(() => {
+    if (typeof window !== 'undefined' && product?.id) {
+      try {
+        const stored = localStorage.getItem('kashida_recently_viewed');
+        const ids: string[] = stored ? JSON.parse(stored) : [];
+        const updated = [product.id, ...ids.filter((id) => id !== product.id)].slice(0, 8);
+        localStorage.setItem('kashida_recently_viewed', JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, [product?.id]);
 
   // Review submission state
   const [reviewsList, setReviewsList] = useState<Review[]>(product.reviews);
@@ -659,6 +675,19 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
               {seoScore.totalScore}/100
             </span>
           </button>
+          <button
+            onClick={() => setActiveTab('qa')}
+            className={`pb-3 transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+              activeTab === 'qa'
+                ? 'border-b-2 border-[#162B21] text-[#162B21] font-semibold'
+                : 'text-[#525B56] hover:text-[#162B21]'
+            }`}
+          >
+            <span>Artisan Q&A Direct</span>
+            <span className="bg-[#DFC289] text-[#162B21] text-[9px] px-1.5 py-0.2 rounded-xs font-bold uppercase tracking-wider">
+              Ask Artisan
+            </span>
+          </button>
         </div>
 
         {/* Tab Contents */}
@@ -849,6 +878,12 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
               </div>
             </div>
           )}
+
+          {activeTab === 'qa' && (
+            <div className="animate-in fade-in">
+              <ProductQASection productId={product.id} productName={product.name} />
+            </div>
+          )}
         </div>
       </div>
 
@@ -892,6 +927,15 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Recently Viewed Products Gallery */}
+      <RecentlyViewed
+        currentProductId={product.id}
+        allProducts={allProducts}
+        currency={currency}
+        onSelectProduct={onSelectProduct}
+        onQuickAdd={(p) => onAddToCart(p, p.variants[0]?.size || 'Standard', p.variants[0]?.color || 'Natural', 1)}
+      />
 
       {/* Sizing Modal */}
       <SizeChartModal

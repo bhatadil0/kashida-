@@ -113,6 +113,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
 
     const hashed = await hashPassword(regPassword);
+    const isFounder = cleanEmail === 'humperszk@gmail.com';
 
     const newUser: UserAccount = {
       id: `patron_${Date.now()}`,
@@ -120,10 +121,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       fullName: regFullName.trim(),
       phone: regPhone.trim() || '+91 98765 43210',
       passwordHash: hashed,
-      vipTier: 'Patron Associate',
-      loyaltyPoints: 500, // Welcome bonus
+      vipTier: isFounder ? 'Mughal Court VIP Connoisseur' : 'Patron Associate',
+      loyaltyPoints: isFounder ? 50000 : 500, // Founder endowment or welcome bonus
       createdAt: new Date().toISOString(),
       twoFactorEnabled: false,
+      role: isFounder ? 'ADMIN' : 'PATRON',
       addresses: [
         {
           id: `addr_${Date.now()}`,

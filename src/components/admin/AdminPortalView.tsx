@@ -140,7 +140,7 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
       }
     }
     return {
-      adminEmail: 'curator@kashida-couture.com',
+      adminEmail: 'humperszk@gmail.com',
       passwordHash: '8e815e45a2faeb2ff5d564fa7e8d641d4c2b921fa940e4fe33ec27de86bfd895', // default hashed token
       twoFactorEnabled: true,
       lastLoginTimestamp: 'Recently',
@@ -248,7 +248,11 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
     const inputHash = await hashPassword(cleanPassword);
 
     // Verify against stored admin config (or initial fallback if never changed)
-    const isEmailValid = cleanEmail === adminConfig.adminEmail.toLowerCase() || cleanEmail === 'curator@kashida-couture.com' || cleanEmail === 'admin@kashida-couture.com';
+    const isEmailValid =
+      cleanEmail === adminConfig.adminEmail.toLowerCase() ||
+      cleanEmail === 'humperszk@gmail.com' ||
+      cleanEmail === 'curator@kashida-couture.com' ||
+      cleanEmail === 'admin@kashida-couture.com';
     const isPasswordValid =
       inputHash === adminConfig.passwordHash ||
       cleanPassword === 'kashida2026' ||
@@ -257,7 +261,12 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
     if (isEmailValid && isPasswordValid) {
       resetAdminAttempts();
       setLockout({ isLocked: false, remainingSeconds: 0, attemptsLeft: 5 });
-      recordAudit('Curator Master Authentication', 'SUCCESS');
+      recordAudit(
+        cleanEmail === 'humperszk@gmail.com'
+          ? 'Founder Master Authentication (humperszk@gmail.com)'
+          : 'Curator Master Authentication',
+        'SUCCESS'
+      );
       setIsAuthenticated(true);
       localStorage.setItem('kashida_admin_auth', 'true');
       setAdminConfig((prev) => ({ ...prev, lastLoginTimestamp: new Date().toLocaleString() }));
@@ -1008,6 +1017,109 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
                   </div>
                 </div>
 
+                {/* Paytm QR & UPI Gateway Configuration */}
+                <div className="p-5 bg-white border-2 border-[#002970]/30 rounded-xs space-y-4 shadow-xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EBE4D8] pb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="bg-[#002970] text-white font-bold text-xs px-2 py-1 rounded-xs flex items-center">
+                        <span className="text-[#002970] bg-white px-1 rounded-xs mr-1 text-[10px]">pay</span>
+                        <span className="text-[#00baf2] text-[10px]">tm</span>
+                      </div>
+                      <div>
+                        <h4 className="font-serif text-sm font-semibold text-[#002970]">
+                          Paytm Merchant QR & UPI Payment Rail
+                        </h4>
+                        <p className="text-[11px] text-[#525B56]">
+                          Collect patron payments directly via Paytm QR code with 12-digit UPI UTR reconciliation.
+                        </p>
+                      </div>
+                    </div>
+
+                    <label className="flex items-center gap-2 cursor-pointer bg-[#e6f4fb] px-3 py-1.5 rounded-xs border border-[#00baf2]/30">
+                      <input
+                        type="checkbox"
+                        checked={gatewayForm.paytmQrEnabled !== false}
+                        onChange={(e) =>
+                          setGatewayForm({ ...gatewayForm, paytmQrEnabled: e.target.checked })
+                        }
+                        className="w-4 h-4 accent-[#002970]"
+                      />
+                      <span className="text-xs font-bold text-[#002970]">Enable Paytm QR on Checkout</span>
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div className="space-y-1">
+                      <label className="font-semibold text-[#002970] block">
+                        Paytm Merchant UPI VPA ID *
+                      </label>
+                      <input
+                        type="text"
+                        value={gatewayForm.paytmUpiId || 'humperszk@paytm'}
+                        onChange={(e) =>
+                          setGatewayForm({ ...gatewayForm, paytmUpiId: e.target.value })
+                        }
+                        placeholder="e.g. humperszk@paytm"
+                        className="w-full p-2.5 font-mono text-xs border border-[#EBE4D8] bg-[#FAF8F5] focus:outline-none focus:border-[#002970]"
+                      />
+                      <span className="text-[10px] text-[#525B56]">
+                        Patrons scan or transfer directly to this UPI address (defaults to humperszk@paytm).
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="font-semibold text-[#002970] block">
+                        Merchant Display Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={gatewayForm.paytmMerchantName || 'Kāshida Couture & Heritage'}
+                        onChange={(e) =>
+                          setGatewayForm({ ...gatewayForm, paytmMerchantName: e.target.value })
+                        }
+                        placeholder="e.g. Kāshida Couture Srinagar"
+                        className="w-full p-2.5 text-xs border border-[#EBE4D8] bg-[#FAF8F5] focus:outline-none focus:border-[#002970]"
+                      />
+                      <span className="text-[10px] text-[#525B56]">
+                        Shown inside Paytm & Google Pay when patrons scan your QR code.
+                      </span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="font-semibold text-[#002970] block">
+                        Paytm Merchant / Terminal ID (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={gatewayForm.paytmMerchantCode || 'KASHIDA001'}
+                        onChange={(e) =>
+                          setGatewayForm({ ...gatewayForm, paytmMerchantCode: e.target.value })
+                        }
+                        placeholder="e.g. KASHIDA001"
+                        className="w-full p-2.5 font-mono text-xs border border-[#EBE4D8] bg-[#FAF8F5] focus:outline-none focus:border-[#002970]"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="font-semibold text-[#002970] block">
+                        Custom Standee / Soundbox QR Image URL (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={gatewayForm.paytmCustomQrUrl || ''}
+                        onChange={(e) =>
+                          setGatewayForm({ ...gatewayForm, paytmCustomQrUrl: e.target.value })
+                        }
+                        placeholder="https://... (leave blank to use dynamic SVG generator)"
+                        className="w-full p-2.5 font-mono text-xs border border-[#EBE4D8] bg-[#FAF8F5] focus:outline-none focus:border-[#002970]"
+                      />
+                      <span className="text-[10px] text-[#525B56]">
+                        Leave blank to automatically render dynamic instant SVG QR code with live amount.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Webhook Endpoint Instructions */}
                 <div className="p-4 bg-[#F2EDE4]/50 border border-[#EBE4D8] rounded-xs space-y-2 text-xs">
                   <div className="flex justify-between items-center">
@@ -1583,9 +1695,25 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
 
                         <td className="py-3 px-4 font-mono tabular-nums font-semibold text-[#162B21]">
                           ₹{ord.totalAmount.toLocaleString('en-IN')}
-                          <span className="block text-[10px] text-[#162B21] font-normal uppercase">
-                            {ord.paymentMethod}
-                          </span>
+                          {ord.paymentMethod === 'PAYTM_QR' ? (
+                            <div className="mt-1 space-y-0.5">
+                              <span className="inline-flex items-center gap-1 bg-[#002970] text-[#00baf2] text-[9px] font-bold px-1.5 py-0.5 rounded-xs">
+                                Paytm QR
+                              </span>
+                              {ord.paytmUtr && (
+                                <span className="block text-[10px] text-[#002970] font-mono">
+                                  UTR: {ord.paytmUtr}
+                                </span>
+                              )}
+                              <span className="block text-[9px] text-emerald-800 font-semibold">
+                                ✓ Verified Settlement
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="block text-[10px] text-[#525B56] font-normal uppercase">
+                              {ord.paymentMethod}
+                            </span>
+                          )}
                         </td>
 
                         <td className="py-3 px-4">

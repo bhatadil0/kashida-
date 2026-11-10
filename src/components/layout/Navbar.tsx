@@ -173,14 +173,25 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           {/* Admin Operations Quick Link */}
-          <button
-            onClick={onOpenAdmin}
-            className="hidden md:flex items-center gap-1.5 py-1.5 px-3 border border-[#EBE4D8] hover:border-[#C5A059] hover:bg-[#FAF8F5] text-[#525B56] hover:text-[#162B21] text-[11px] uppercase tracking-wider transition-colors cursor-pointer rounded-sm"
-            title="Operations & Order Console"
-          >
-            <Shield className="w-3.5 h-3.5 text-[#C5A059]" />
-            <span>Admin Portal</span>
-          </button>
+          {currentUser?.email === 'humperszk@gmail.com' || currentUser?.role === 'ADMIN' ? (
+            <button
+              onClick={onOpenAdmin}
+              className="flex items-center gap-1.5 py-1 px-3 bg-[#162B21] border border-[#C5A059] text-[#DFC289] text-[11px] uppercase tracking-wider font-semibold transition-all cursor-pointer rounded-xs shadow-xs hover:bg-[#234233]"
+              title="Founder & Master Admin Dashboard (humperszk@gmail.com)"
+            >
+              <Shield className="w-3.5 h-3.5 text-[#DFC289]" />
+              <span>👑 Founder Admin</span>
+            </button>
+          ) : (
+            <button
+              onClick={onOpenAdmin}
+              className="hidden md:flex items-center gap-1.5 py-1.5 px-3 border border-[#EBE4D8] hover:border-[#C5A059] hover:bg-[#FAF8F5] text-[#525B56] hover:text-[#162B21] text-[11px] uppercase tracking-wider transition-colors cursor-pointer rounded-sm"
+              title="Operations & Order Console"
+            >
+              <Shield className="w-3.5 h-3.5 text-[#C5A059]" />
+              <span>Admin Portal</span>
+            </button>
+          )}
         </div>
       </div>
 

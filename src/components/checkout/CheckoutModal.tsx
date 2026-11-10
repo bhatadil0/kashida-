@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { CartItem, Coupon, OrderDossier, ShippingAddress, PaymentGatewayConfig, UserAccount } from '../../types';
 import { formatPrice } from '../../utils/currency';
+import { PaytmQrPayment } from './PaytmQrPayment';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -37,7 +38,11 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   onOrderSuccess,
 }) => {
   const [step, setStep] = useState<1 | 2>(1);
-  const [paymentMethod, setPaymentMethod] = useState<'RAZORPAY_UPI' | 'RAZORPAY_CARD' | 'COD'>('RAZORPAY_CARD');
+  const [paymentMethod, setPaymentMethod] = useState<'PAYTM_QR' | 'RAZORPAY_UPI' | 'RAZORPAY_CARD' | 'COD'>('PAYTM_QR');
+  const [paytmUtr, setPaytmUtr] = useState('');
+  const [isGiftPackaging, setIsGiftPackaging] = useState(false);
+  const [giftRecipient, setGiftRecipient] = useState('');
+  const [giftMessage, setGiftMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [formError, setFormError] = useState('');
 
@@ -131,6 +136,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
         shippingAddress: address,
         paymentMethod: paymentMethod,
         paymentStatus: 'PAID',
+        paytmUtr: paymentMethod === 'PAYTM_QR' ? (paytmUtr.trim() || '412984920194') : undefined,
+        paytmVerified: paymentMethod === 'PAYTM_QR',
+        giftPackaging: isGiftPackaging
+          ? {
+              isGift: true,
+              recipientName: giftRecipient.trim() || address.fullName,
+              giftMessage: giftMessage.trim() || 'Compliments of the season',
+            }
+          : undefined,
         razorpayOrderId: `order_rzp_${Math.random().toString(36).substring(2, 10)}`,
         razorpayPaymentId: `pay_rzp_${Math.random().toString(36).substring(2, 12)}`,
         subTotal,
@@ -333,6 +347,56 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
               </div>
 
+              {/* Royal Keepsake Gift Packaging Option */}
+              <div className="p-4 bg-[#FAF8F5] border border-[#C5A059]/40 rounded-xs space-y-3">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isGiftPackaging}
+                    onChange={(e) => setIsGiftPackaging(e.target.checked)}
+                    className="w-4 h-4 text-[#162B21] accent-[#162B21] rounded-xs cursor-pointer"
+                  />
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-serif font-bold text-[#162B21] flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-[#C5A059]" />
+                      Royal Heirloom Keepsake Packaging (Complimentary)
+                    </span>
+                    <span className="text-[11px] text-[#525B56] block">
+                      Includes cedar-scented keepsake box, emerald ribbon, wax seal, and handwritten calligraphy note.
+                    </span>
+                  </div>
+                </label>
+
+                {isGiftPackaging && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#EBE4D8] animate-in fade-in">
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase tracking-wider text-[#525B56] font-semibold">
+                        Honored Recipient Name
+                      </label>
+                      <input
+                        type="text"
+                        value={giftRecipient}
+                        onChange={(e) => setGiftRecipient(e.target.value)}
+                        placeholder="e.g. Princess Noor"
+                        className="w-full p-2 border border-[#EBE4D8] bg-white text-xs focus:outline-none focus:border-[#C5A059]"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase tracking-wider text-[#525B56] font-semibold">
+                        Personal Monogram / Calligraphy Message
+                      </label>
+                      <input
+                        type="text"
+                        value={giftMessage}
+                        onChange={(e) => setGiftMessage(e.target.value)}
+                        placeholder="e.g. With deepest admiration & blessings"
+                        className="w-full p-2 border border-[#EBE4D8] bg-white text-xs focus:outline-none focus:border-[#C5A059]"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Order Quick Summary */}
               <div className="p-4 bg-[#F2EDE4]/50 border border-[#EBE4D8] rounded-xs flex items-center justify-between text-xs">
                 <div>
@@ -378,11 +442,34 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               </div>
 
               {/* Payment Method Selector */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {(paymentConfig?.cardEnabled !== false) && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {paymentConfig?.paytmQrEnabled !== false && (
+                  <button
+                    onClick={() => setPaymentMethod('PAYTM_QR')}
+                    className={`p-3 border text-center transition-all cursor-pointer rounded-xs flex flex-col items-center gap-1 relative overflow-hidden ${
+                      paymentMethod === 'PAYTM_QR'
+                        ? 'border-[#002970] bg-[#002970] text-white shadow-md'
+                        : 'border-[#002970]/30 bg-white text-[#002970] hover:border-[#002970]'
+                    }`}
+                  >
+                    <div className="absolute top-1 right-1 bg-[#00baf2] text-[#002970] text-[8px] font-bold px-1 rounded-xs uppercase">
+                      Instant
+                    </div>
+                    <div className="flex items-center gap-0.5">
+                      <span className="font-bold text-xs">pay</span>
+                      <span className="font-bold text-xs text-[#00baf2]">tm</span>
+                      <span className="text-[10px] ml-0.5 font-bold">QR</span>
+                    </div>
+                    <span className="text-[11px] uppercase tracking-wider font-semibold">
+                      Paytm / UPI
+                    </span>
+                  </button>
+                )}
+
+                {paymentConfig?.cardEnabled !== false && (
                   <button
                     onClick={() => setPaymentMethod('RAZORPAY_CARD')}
-                    className={`p-3.5 border text-center transition-all cursor-pointer rounded-xs flex flex-col items-center gap-1.5 ${
+                    className={`p-3 border text-center transition-all cursor-pointer rounded-xs flex flex-col items-center gap-1.5 ${
                       paymentMethod === 'RAZORPAY_CARD'
                         ? 'border-[#162B21] bg-[#162B21] text-[#FAF8F5] shadow-xs'
                         : 'border-[#EBE4D8] bg-[#FAF8F5] text-[#1C1F1E] hover:border-[#C5A059]'
@@ -390,15 +477,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   >
                     <CreditCard className="w-5 h-5 text-[#DFC289]" />
                     <span className="text-xs uppercase tracking-wider font-medium">
-                      Credit / Debit Card
+                      Card
                     </span>
                   </button>
                 )}
 
-                {(paymentConfig?.upiEnabled !== false) && (
+                {paymentConfig?.upiEnabled !== false && (
                   <button
                     onClick={() => setPaymentMethod('RAZORPAY_UPI')}
-                    className={`p-3.5 border text-center transition-all cursor-pointer rounded-xs flex flex-col items-center gap-1.5 ${
+                    className={`p-3 border text-center transition-all cursor-pointer rounded-xs flex flex-col items-center gap-1.5 ${
                       paymentMethod === 'RAZORPAY_UPI'
                         ? 'border-[#162B21] bg-[#162B21] text-[#FAF8F5] shadow-xs'
                         : 'border-[#EBE4D8] bg-[#FAF8F5] text-[#1C1F1E] hover:border-[#C5A059]'
@@ -406,15 +493,15 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   >
                     <Smartphone className="w-5 h-5 text-[#DFC289]" />
                     <span className="text-xs uppercase tracking-wider font-medium">
-                      Instant UPI / QR
+                      Direct UPI
                     </span>
                   </button>
                 )}
 
-                {(paymentConfig?.codEnabled !== false) && (
+                {paymentConfig?.codEnabled !== false && (
                   <button
                     onClick={() => setPaymentMethod('COD')}
-                    className={`p-3.5 border text-center transition-all cursor-pointer rounded-xs flex flex-col items-center gap-1.5 ${
+                    className={`p-3 border text-center transition-all cursor-pointer rounded-xs flex flex-col items-center gap-1.5 ${
                       paymentMethod === 'COD'
                         ? 'border-[#162B21] bg-[#162B21] text-[#FAF8F5] shadow-xs'
                         : 'border-[#EBE4D8] bg-[#FAF8F5] text-[#1C1F1E] hover:border-[#C5A059]'
@@ -422,11 +509,24 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   >
                     <Banknote className="w-5 h-5 text-[#DFC289]" />
                     <span className="text-xs uppercase tracking-wider font-medium">
-                      Cash on Delivery
+                      Cash on Del.
                     </span>
                   </button>
                 )}
               </div>
+
+              {/* Dynamic Payment Details Area */}
+              {paymentMethod === 'PAYTM_QR' && (
+                <PaytmQrPayment
+                  totalAmount={totalAmount}
+                  currency={currency}
+                  paymentConfig={paymentConfig}
+                  paytmUtr={paytmUtr}
+                  onUtrChange={setPaytmUtr}
+                  onConfirmPaytmPayment={handleSimulatePayment}
+                  isProcessing={isProcessing}
+                />
+              )}
 
               {/* Dynamic Payment Details Area */}
               {paymentMethod === 'RAZORPAY_CARD' && (
@@ -555,31 +655,33 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
               )}
 
-              {/* Authorize & Complete Order Button */}
-              <div className="pt-4 border-t border-[#F2EDE4] flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div>
-                  <span className="text-xs text-[#525B56]">Final Payable Amount:</span>
-                  <p className="font-mono text-2xl font-semibold text-[#162B21] tabular-nums">
-                    {formatPrice(totalAmount, currency)}
-                  </p>
-                </div>
+              {/* Authorize & Complete Order Button (For Card, Direct UPI, COD) */}
+              {paymentMethod !== 'PAYTM_QR' && (
+                <div className="pt-4 border-t border-[#F2EDE4] flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div>
+                    <span className="text-xs text-[#525B56]">Final Payable Amount:</span>
+                    <p className="font-mono text-2xl font-semibold text-[#162B21] tabular-nums">
+                      {formatPrice(totalAmount, currency)}
+                    </p>
+                  </div>
 
-                <button
-                  type="button"
-                  disabled={isProcessing}
-                  onClick={handleSimulatePayment}
-                  className={`w-full sm:w-auto px-10 py-4 text-xs uppercase tracking-[0.2em] font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg ${
-                    isProcessing
-                      ? 'bg-[#234233] text-[#DFC289] cursor-wait'
-                      : 'bg-[#162B21] hover:bg-[#234233] text-[#FAF8F5]'
-                  }`}
-                >
-                  <Lock className="w-4 h-4 text-[#DFC289]" />
-                  <span>
-                    {isProcessing ? 'Verifying with Razorpay...' : `Authorize ${formatPrice(totalAmount, currency)}`}
-                  </span>
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    disabled={isProcessing}
+                    onClick={handleSimulatePayment}
+                    className={`w-full sm:w-auto px-10 py-4 text-xs uppercase tracking-[0.2em] font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg ${
+                      isProcessing
+                        ? 'bg-[#234233] text-[#DFC289] cursor-wait'
+                        : 'bg-[#162B21] hover:bg-[#234233] text-[#FAF8F5]'
+                    }`}
+                  >
+                    <Lock className="w-4 h-4 text-[#DFC289]" />
+                    <span>
+                      {isProcessing ? 'Verifying with Gateway...' : `Authorize ${formatPrice(totalAmount, currency)}`}
+                    </span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -108,6 +108,14 @@ export type OrderStatus =
   | 'CANCELLED'
   | 'REFUNDED';
 
+export interface OrderTrackingCheckpoint {
+  id: string;
+  timestamp: string;
+  location: string;
+  status: string;
+  note?: string;
+}
+
 export interface OrderDossier {
   orderNumber: string;
   createdAt: string;
@@ -132,6 +140,26 @@ export interface OrderDossier {
   totalAmount: number;
   trackingNumber: string;
   estimatedDelivery: string;
+  carrier?: string;
+  trackingCheckpoints?: OrderTrackingCheckpoint[];
+  artisanAssigned?: string;
+  needleworkProgress?: number;
+  internalNotes?: string;
+  rmaStatus?: 'NONE' | 'REQUESTED' | 'APPROVED' | 'INSPECTED' | 'RESOLVED';
+  rmaReason?: string;
+}
+
+export interface InventoryLogItem {
+  id: string;
+  timestamp: string;
+  productId: string;
+  productName: string;
+  variantId: string;
+  variantLabel: string;
+  delta: number;
+  newStock: number;
+  reason: string;
+  operator: string;
 }
 
 export interface Coupon {

@@ -41,6 +41,8 @@ import {
   Clock,
   ShieldCheck,
   Image as ImageIcon,
+  Boxes,
+  QrCode,
 } from 'lucide-react';
 import {
   OrderDossier,
@@ -54,6 +56,7 @@ import {
   AdminSecurityConfig,
   HomepageCMSConfig,
 } from '../../types';
+import { OperationsCommandCenter } from './OperationsCommandCenter';
 import { SEOHealthChecker } from './SEOHealthChecker';
 import { CategoryManager } from './CategoryManager';
 import { ProductFormModal } from './ProductFormModal';
@@ -97,6 +100,8 @@ interface AdminPortalViewProps {
   onUpdateSEOConfig: (newConfig: SEOConfig) => void;
   homepageConfig?: HomepageCMSConfig;
   onUpdateHomepageConfig?: (newConfig: HomepageCMSConfig) => void;
+  onUpdateOrderDossier?: (updatedOrder: OrderDossier) => void;
+  onRestoreDatabaseSnapshot?: (snapshotData: any) => void;
   onReturnToStorefront: () => void;
   onReturnToStorefrontWithCategory?: (categoryId: string) => void;
 }
@@ -125,6 +130,8 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
   onUpdateSEOConfig,
   homepageConfig,
   onUpdateHomepageConfig,
+  onUpdateOrderDossier,
+  onRestoreDatabaseSnapshot,
   onReturnToStorefront,
   onReturnToStorefrontWithCategory,
 }) => {
@@ -206,8 +213,8 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
 
   // Active View / Sidebar Tab
   const [activeTab, setActiveTab] = useState<
-    'analytics' | 'products' | 'categories' | 'homepage' | 'orders' | 'inventory' | 'gateways' | 'patrons' | 'coupons' | 'reviews' | 'seo' | 'security'
-  >('analytics');
+    'operations' | 'analytics' | 'products' | 'categories' | 'homepage' | 'orders' | 'inventory' | 'gateways' | 'patrons' | 'coupons' | 'reviews' | 'seo' | 'security'
+  >('operations');
 
   // Security Audit Log State
   const [auditLogs, setAuditLogs] = useState<{ id: string; timestamp: string; event: string; ip: string; status: 'SUCCESS' | 'FAILED' }[]>(() => {
@@ -721,7 +728,19 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-4 text-xs">
+        <div className="flex items-center gap-3 text-xs">
+          <button
+            onClick={() => setActiveTab('operations')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] uppercase tracking-wider font-bold rounded-xs cursor-pointer transition-colors ${
+              activeTab === 'operations'
+                ? 'bg-[#C5A059] text-[#162B21] shadow-xs'
+                : 'bg-[#FAF8F5]/10 hover:bg-[#FAF8F5]/20 text-[#DFC289] border border-[#DFC289]/30'
+            }`}
+          >
+            <Boxes className="w-3.5 h-3.5" />
+            <span>Operations Desk</span>
+          </button>
+
           <button
             onClick={onReturnToStorefront}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FAF8F5]/10 hover:bg-[#FAF8F5]/20 text-[#DFC289] border border-[#DFC289]/30 text-[11px] uppercase tracking-wider rounded-xs cursor-pointer transition-colors"
@@ -732,7 +751,7 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
 
           <div className="hidden md:flex items-center gap-2 border-l border-[#FAF8F5]/20 pl-4">
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span className="text-[11px] text-[#FAF8F5]/90">Ustad Bashir Ahmad (Curator)</span>
+            <span className="text-[11px] text-[#FAF8F5]/90">Founder humperszk@gmail.com</span>
           </div>
 
           <button
@@ -753,6 +772,21 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
             <span className="text-[10px] uppercase tracking-[0.25em] text-[#C5A059] font-bold px-3 block mb-2">
               Atelier Management
             </span>
+
+            <button
+              onClick={() => setActiveTab('operations')}
+              className={`w-full text-left px-3 py-2.5 text-xs uppercase tracking-wider font-semibold rounded-xs flex items-center justify-between transition-colors cursor-pointer ${
+                activeTab === 'operations' ? 'bg-[#162B21] text-[#FAF8F5]' : 'text-[#525B56] hover:bg-[#EBE4D8] hover:text-[#162B21]'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Boxes className="w-4 h-4 text-[#DFC289]" />
+                <span>Operations Desk</span>
+              </div>
+              <span className="font-mono text-[9px] bg-[#C5A059] text-[#162B21] font-bold px-1.5 py-0.5 rounded-xs">
+                HUB
+              </span>
+            </button>
 
             <button
               onClick={() => setActiveTab('analytics')}
@@ -927,6 +961,25 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
 
         {/* Workspace Area Right */}
         <main className="flex-1 p-6 lg:p-8 overflow-y-auto space-y-6">
+          {/* =========================================================================
+              TAB: DEDICATED BACKEND OPERATIONS COMMAND DESK
+              ========================================================================= */}
+          {activeTab === 'operations' && (
+            <OperationsCommandCenter
+              orders={orders}
+              products={products}
+              categories={categories}
+              coupons={coupons}
+              paymentConfig={paymentConfig}
+              homepageConfig={internalHomepageConfig}
+              seoConfig={seoConfig}
+              onUpdateOrderStatus={onUpdateOrderStatus}
+              onUpdateStock={onUpdateStock}
+              onUpdateOrderDossier={onUpdateOrderDossier}
+              onRestoreDatabaseSnapshot={onRestoreDatabaseSnapshot}
+            />
+          )}
+
           {/* =========================================================================
               TAB: PAYMENT GATEWAYS & API KEYS CONFIGURATION (USER REQUIREMENT)
               ========================================================================= */}

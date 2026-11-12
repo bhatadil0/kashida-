@@ -250,8 +250,135 @@ export default function App() {
         console.error(e);
       }
     }
-    // Initial seeded historic commission
+    // Initial seeded historic commissions with diverse operations states
     return [
+      {
+        orderNumber: 'KASH-948190',
+        createdAt: 'Today, 10:14 AM',
+        status: 'PENDING',
+        items: [
+          {
+            id: 'item-seed-4',
+            productId: INITIAL_PRODUCTS[1].id,
+            product: INITIAL_PRODUCTS[1],
+            variantId: INITIAL_PRODUCTS[1].variants[0].id,
+            size: 'M',
+            color: 'Midnight Indigo',
+            quantity: 1,
+            unitPrice: 42000,
+          },
+        ],
+        shippingAddress: {
+          fullName: 'Dr. Zainab Qureshi',
+          email: 'zainab.q@apollohospitals.com',
+          phone: '+91 99061 88231',
+          streetLine1: 'Golf Course Road, DLF Phase 5',
+          city: 'Gurugram',
+          state: 'Haryana',
+          postalCode: '122002',
+          country: 'India',
+        },
+        paymentMethod: 'PAYTM_QR',
+        paymentStatus: 'PAID',
+        paytmUtr: '419280193821',
+        paytmVerified: false,
+        subTotal: 42000,
+        discountAmount: 0,
+        shippingCost: 0,
+        totalAmount: 42000,
+        trackingNumber: 'Awaiting Merchant Packing',
+        estimatedDelivery: '3 Business Days via DHL Express',
+        carrier: 'DHL Express Worldwide',
+        artisanAssigned: 'Master Bashir Ahmad',
+        needleworkProgress: 30,
+      },
+      {
+        orderNumber: 'KASH-934812',
+        createdAt: 'Yesterday, 02:45 PM',
+        status: 'PROCESSING',
+        items: [
+          {
+            id: 'item-seed-3',
+            productId: INITIAL_PRODUCTS[0].id,
+            product: INITIAL_PRODUCTS[0],
+            variantId: INITIAL_PRODUCTS[0].variants[0].id,
+            size: 'L',
+            color: 'Midnight Black',
+            quantity: 1,
+            unitPrice: 48500,
+          },
+        ],
+        shippingAddress: {
+          fullName: 'Vikram Malhotra',
+          email: 'vikram.m@malhotrainvest.com',
+          phone: '+91 98200 44521',
+          streetLine1: 'Altamount Road, Cumballa Hill',
+          city: 'Mumbai',
+          state: 'Maharashtra',
+          postalCode: '400026',
+          country: 'India',
+        },
+        paymentMethod: 'RAZORPAY_UPI',
+        paymentStatus: 'PAID',
+        razorpayPaymentId: 'pay_rzp_live_934812',
+        subTotal: 48500,
+        discountAmount: 0,
+        shippingCost: 0,
+        totalAmount: 48500,
+        trackingNumber: 'BLUEDART-8839210-IN',
+        estimatedDelivery: 'Nov 16, 2026',
+        carrier: 'Blue Dart Apex Express',
+        artisanAssigned: 'Ustad Ghulam Nabi',
+        needleworkProgress: 80,
+        trackingCheckpoints: [
+          {
+            id: 'chk-1',
+            timestamp: 'Yesterday, 04:00 PM',
+            location: 'Old Srinagar Atelier',
+            status: 'Needlework 80% Complete. Quality Stamped.',
+          },
+        ],
+      },
+      {
+        orderNumber: 'KASH-921045',
+        createdAt: 'November 8, 2026, 04:12 PM',
+        status: 'CONFIRMED',
+        items: [
+          {
+            id: 'item-seed-2',
+            productId: INITIAL_PRODUCTS[2].id,
+            product: INITIAL_PRODUCTS[2],
+            variantId: INITIAL_PRODUCTS[2].variants[0].id,
+            size: 'Standard',
+            color: 'Natural Ivory Cashmere',
+            quantity: 1,
+            unitPrice: 65000,
+          },
+        ],
+        shippingAddress: {
+          fullName: 'Aisha Mir',
+          email: 'aisha.mir@kashmircrafts.org',
+          phone: '+91 94190 12894',
+          streetLine1: 'Rajbagh Extension, Near Convent School',
+          city: 'Srinagar',
+          state: 'Jammu & Kashmir',
+          postalCode: '190008',
+          country: 'India',
+        },
+        paymentMethod: 'PAYTM_QR',
+        paymentStatus: 'PAID',
+        paytmUtr: '261104882914',
+        paytmVerified: true,
+        subTotal: 65000,
+        discountAmount: 0,
+        shippingCost: 0,
+        totalAmount: 65000,
+        trackingNumber: 'DHL-IN-921045882',
+        estimatedDelivery: 'Nov 14, 2026',
+        carrier: 'DHL Express Worldwide',
+        artisanAssigned: 'Mirza Tariq Hussain',
+        needleworkProgress: 100,
+      },
       {
         orderNumber: 'KASH-849201',
         createdAt: 'November 4, 2026, 11:42 AM',
@@ -288,6 +415,9 @@ export default function App() {
         totalAmount: 38250,
         trackingNumber: 'DHL-IN-982348192',
         estimatedDelivery: 'Delivered via White-Glove Courier',
+        carrier: 'DHL Express Worldwide',
+        artisanAssigned: 'Ustad Ghulam Nabi',
+        needleworkProgress: 100,
       },
     ];
   });
@@ -672,6 +802,24 @@ export default function App() {
     );
   };
 
+  // Admin full order dossier update (logistics, AWB, checkpoints, Paytm verification)
+  const handleUpdateOrderDossier = (updatedOrder: OrderDossier) => {
+    setOrders((prev) =>
+      prev.map((o) => (o.orderNumber === updatedOrder.orderNumber ? updatedOrder : o))
+    );
+  };
+
+  // Admin complete snapshot restore
+  const handleRestoreDatabaseSnapshot = (snapshot: any) => {
+    if (snapshot.orders && Array.isArray(snapshot.orders)) setOrders(snapshot.orders);
+    if (snapshot.products && Array.isArray(snapshot.products)) setProducts(snapshot.products);
+    if (snapshot.categories && Array.isArray(snapshot.categories)) setCategories(snapshot.categories);
+    if (snapshot.coupons && Array.isArray(snapshot.coupons)) setCoupons(snapshot.coupons);
+    if (snapshot.homepageConfig) setHomepageConfig(snapshot.homepageConfig);
+    if (snapshot.paymentConfig) setPaymentConfig(snapshot.paymentConfig);
+    if (snapshot.seoConfig) setSeoConfig(snapshot.seoConfig);
+  };
+
   // Admin inventory adjustment
   const handleUpdateStock = (productId: string, variantId: string, newStock: number) => {
     setProducts(
@@ -834,6 +982,8 @@ export default function App() {
         onUpdateHomepageConfig={setHomepageConfig}
         onUpdateAnnouncement={setAnnouncementText}
         onUpdateOrderStatus={handleUpdateOrderStatus}
+        onUpdateOrderDossier={handleUpdateOrderDossier}
+        onRestoreDatabaseSnapshot={handleRestoreDatabaseSnapshot}
         onUpdateStock={handleUpdateStock}
         onAddProduct={handleAddProduct}
         onUpdateProduct={handleUpdateProduct}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Check, ShieldCheck, Truck, Award, Scissors, Sparkles, User } from 'lucide-react';
-import { ProductCategory } from '../../types';
+import { ProductCategory, UserAccount } from '../../types';
 
 interface FooterProps {
   onSelectCategory: (cat: ProductCategory) => void;
@@ -11,6 +11,7 @@ interface FooterProps {
   onOpenBespokeModal?: () => void;
   onOpenConcierge?: () => void;
   onOpenCustomerPortal?: () => void;
+  currentUser?: UserAccount | null;
 }
 
 export const Footer: React.FC<FooterProps> = ({
@@ -22,6 +23,7 @@ export const Footer: React.FC<FooterProps> = ({
   onOpenBespokeModal,
   onOpenConcierge,
   onOpenCustomerPortal,
+  currentUser,
 }) => {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
@@ -228,7 +230,7 @@ export const Footer: React.FC<FooterProps> = ({
             <span>·</span>
             <span>Insured DHL Transit</span>
             <span>·</span>
-            {onOpenAdmin && (
+            {onOpenAdmin && (currentUser?.email === 'humperszk@gmail.com' || currentUser?.role === 'ADMIN') && (
               <>
                 <button
                   onClick={onOpenAdmin}

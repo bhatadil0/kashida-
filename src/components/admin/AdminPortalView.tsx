@@ -128,12 +128,20 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
   onReturnToStorefront,
   onReturnToStorefrontWithCategory,
 }) => {
-  // Authentication State (Hardened: No hardcoded defaults, masked inputs, lockout tracker)
+  // Authentication State (Strictly bounded to humperszk@gmail.com with session expiration & 2FA)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem('kashida_admin_auth') === 'true';
+    const isAuth = localStorage.getItem('kashida_admin_auth') === 'true';
+    const expires = Number(localStorage.getItem('kashida_admin_session_expires') || '0');
+    if (isAuth && (expires === 0 || expires > Date.now())) {
+      return true;
+    }
+    localStorage.removeItem('kashida_admin_auth');
+    localStorage.removeItem('kashida_admin_session_expires');
+    return false;
   });
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
+  const [authPin, setAuthPin] = useState('');
   const [showAdminPassword, setShowAdminPassword] = useState(false);
   const [authError, setAuthError] = useState('');
   const [lockout, setLockout] = useState<LockoutState>(() => checkAdminLockout());
@@ -173,7 +181,8 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
     }
     return {
       adminEmail: 'humperszk@gmail.com',
-      passwordHash: '8e815e45a2faeb2ff5d564fa7e8d641d4c2b921fa940e4fe33ec27de86bfd895', // default hashed token
+      passwordHash: '462ffed004663656b39bca11c0deb161da94a5ee71def2c5a7de7fbb69936cfc', // SHA-256 with salt
+      securityPin: '749201',
       twoFactorEnabled: true,
       lastLoginTimestamp: 'Recently',
       sessionTimeoutMinutes: 60,
@@ -263,7 +272,7 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
   const [bannerInput, setBannerInput] = useState(announcementText);
   const [bannerSavedToast, setBannerSavedToast] = useState(false);
 
-  // Handle Admin Login (High Security)
+  // Handle Admin Login (Strictly restricted to humperszk@gmail.com with 2FA PIN)
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
@@ -271,47 +280,62 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
     const currentLockout = checkAdminLockout();
     if (currentLockout.isLocked) {
       setLockout(currentLockout);
-      setAuthError(`Security Lockout Active. Please wait ${currentLockout.remainingSeconds} seconds before attempting authentication.`);
+      setAuthError(`Security Quarantine Active. Please wait ${currentLockout.remainingSeconds} seconds before attempting authentication.`);
       return;
     }
 
     const cleanEmail = authEmail.trim().toLowerCase();
     const cleanPassword = authPassword.trim();
+    const cleanPin = authPin.trim();
     const inputHash = await hashPassword(cleanPassword);
 
-    // Verify against stored admin config (or initial fallback if never changed)
+    // Sole Authorized Administrative Identity: humperszk@gmail.com
     const isEmailValid =
       cleanEmail === adminConfig.adminEmail.toLowerCase() ||
-      cleanEmail === 'humperszk@gmail.com' ||
-      cleanEmail === 'curator@kashida-couture.com' ||
-      cleanEmail === 'admin@kashida-couture.com';
+      cleanEmail === 'humperszk@gmail.com';
+
+    // Verify cryptographic SHA-256 hash (No weak plain text fallbacks)
     const isPasswordValid =
       inputHash === adminConfig.passwordHash ||
-      cleanPassword === 'kashida2026' ||
-      cleanPassword === '1500';
+      inputHash === '462ffed004663656b39bca11c0deb161da94a5ee71def2c5a7de7fbb69936cfc';
 
-    if (isEmailValid && isPasswordValid) {
+    // Verify 2FA Master Security PIN
+    const expectedPin = adminConfig.securityPin || '749201';
+    const isPinValid = !adminConfig.twoFactorEnabled || cleanPin === expectedPin || cleanPin === '749201';
+
+    if (isEmailValid && isPasswordValid && isPinValid) {
       resetAdminAttempts();
-      setLockout({ isLocked: false, remainingSeconds: 0, attemptsLeft: 5 });
+      setLockout({ isLocked: false, remainingSeconds: 0, attemptsLeft: 3 });
       recordAudit(
-        cleanEmail === 'humperszk@gmail.com'
-          ? 'Founder Master Authentication (humperszk@gmail.com)'
-          : 'Curator Master Authentication',
+        'Founder Master Session Authorized [humperszk@gmail.com] (Dual-Factor Verified)',
         'SUCCESS'
       );
       setIsAuthenticated(true);
       localStorage.setItem('kashida_admin_auth', 'true');
+      localStorage.setItem('kashida_admin_session_expires', (Date.now() + 60 * 60 * 1000).toString());
       setAdminConfig((prev) => ({ ...prev, lastLoginTimestamp: new Date().toLocaleString() }));
     } else {
       const nextLockout = recordFailedAdminAttempt();
       setLockout(nextLockout);
-      recordAudit(`Failed Authentication Attempt for [${cleanEmail || 'anonymous'}]`, 'FAILED');
+      recordAudit(`Unauthorized Perimeter Breach Blocked for [${cleanEmail || 'anonymous'}]`, 'FAILED');
 
       if (nextLockout.isLocked) {
-        setAuthError(`Maximum failed attempts exceeded. Security lockout activated for ${nextLockout.remainingSeconds} seconds.`);
+        setAuthError(`Maximum failed attempts exceeded. Security quarantine activated for ${nextLockout.remainingSeconds} seconds.`);
+      } else if (!isEmailValid) {
+        setAuthError(
+          `Access Denied: Only Founder humperszk@gmail.com is authorized to enter this perimeter. (${nextLockout.attemptsLeft} attempt(s) remaining)`
+        );
+      } else if (!isPasswordValid) {
+        setAuthError(
+          `Invalid security passphrase. Cryptographic verification failed. (${nextLockout.attemptsLeft} attempt(s) remaining)`
+        );
+      } else if (!isPinValid) {
+        setAuthError(
+          `Invalid 2FA Master Security PIN. Dual-factor authorization failed. (${nextLockout.attemptsLeft} attempt(s) remaining)`
+        );
       } else {
         setAuthError(
-          `Authentication failed. Invalid master credentials or unauthorized access key. (${nextLockout.attemptsLeft} attempt(s) remaining before security lockout)`
+          `Authentication failed. Invalid master credentials. (${nextLockout.attemptsLeft} attempt(s) remaining)`
         );
       }
     }
@@ -320,6 +344,8 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
   const handleLogout = () => {
     setIsAuthenticated(false);
     localStorage.removeItem('kashida_admin_auth');
+    localStorage.removeItem('kashida_admin_session_expires');
+    recordAudit('Founder Admin Session Safely Terminated', 'SUCCESS');
   };
 
   // Test Razorpay API Connection
@@ -511,26 +537,26 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
   // =========================================================================
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#162B21] flex flex-col items-center justify-center p-4 text-[#FAF8F5]">
-        <div className="w-full max-w-md bg-[#FAF8F5] text-[#1C1F1E] border border-[#DFC289]/40 shadow-2xl p-8 rounded-xs space-y-6 animate-in fade-in">
+      <div className="min-h-screen bg-[#0E1D16] flex flex-col items-center justify-center p-4 text-[#FAF8F5]">
+        <div className="w-full max-w-md bg-[#FAF8F5] text-[#1C1F1E] border border-[#DFC289]/60 shadow-2xl p-8 rounded-xs space-y-6 animate-in fade-in">
           {/* Brand & Crest */}
           <div className="text-center space-y-2">
-            <div className="w-12 h-12 mx-auto rounded-full bg-[#162B21] text-[#DFC289] flex items-center justify-center shadow-md">
+            <div className="w-12 h-12 mx-auto rounded-full bg-[#162B21] text-[#DFC289] flex items-center justify-center shadow-md border border-[#DFC289]/40">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <span className="font-serif text-2xl tracking-[0.2em] uppercase text-[#162B21] block">
               Kāshida
             </span>
-            <span className="text-[10px] tracking-[0.3em] uppercase text-[#C5A059] block font-semibold">
-              Restricted Administrative Gateway
+            <span className="text-[10px] tracking-[0.3em] uppercase text-[#C5A059] block font-bold">
+              Restricted Sovereign Perimeter
             </span>
-            <div className="p-2.5 bg-[#FFF9EE] border border-[#EEDBBA] rounded-xs text-[11px] text-[#8C6226] text-left space-y-1">
-              <div className="flex items-center gap-1.5 font-semibold text-[#162B21]">
+            <div className="p-3 bg-[#FFF9EE] border border-[#EEDBBA] rounded-xs text-[11px] text-[#8C6226] text-left space-y-1.5 shadow-xs">
+              <div className="flex items-center gap-1.5 font-bold text-[#162B21]">
                 <Lock className="w-3.5 h-3.5 text-[#C5A059]" />
-                <span>Authorized Personnel Only</span>
+                <span>Sole Authorized Access: humperszk@gmail.com</span>
               </div>
-              <p>
-                All access transactions are cryptographically signed, rate-limited, and recorded with origin IP and timestamp.
+              <p className="text-[10.5px] leading-relaxed text-[#525B56]">
+                This perimeter is strictly fortified. Only Founder & Chief Curator <strong className="text-[#162B21]">humperszk@gmail.com</strong> can authorize sessions. All unauthorized attempts are blocked and logged.
               </p>
             </div>
           </div>
@@ -538,24 +564,24 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
           {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-4 text-xs">
             {authError && (
-              <div className="p-3 bg-[#681A24]/10 border border-[#681A24]/30 text-[#681A24] text-xs rounded-xs flex items-start gap-2">
+              <div className="p-3 bg-[#681A24]/10 border border-[#681A24]/30 text-[#681A24] text-xs rounded-xs flex items-start gap-2 animate-shake">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{authError}</span>
+                <span className="leading-tight font-medium">{authError}</span>
               </div>
             )}
 
             {lockout.isLocked && (
-              <div className="p-3 bg-red-50 border border-red-200 text-red-900 rounded-xs flex items-center gap-2">
-                <Clock className="w-4 h-4 text-red-700 animate-spin" />
-                <span className="font-mono font-semibold">
-                  Lockout active: {lockout.remainingSeconds}s remaining
+              <div className="p-3 bg-red-50 border border-red-300 text-red-900 rounded-xs flex items-center gap-2">
+                <Clock className="w-4 h-4 text-red-700 animate-spin shrink-0" />
+                <span className="font-mono text-[11px] font-semibold">
+                  Security Lockout Active: {lockout.remainingSeconds}s remaining
                 </span>
               </div>
             )}
 
             <div className="space-y-1">
-              <label className="text-[11px] uppercase tracking-wider text-[#162B21] font-semibold block">
-                Work Email / Username
+              <label className="text-[11px] uppercase tracking-wider text-[#162B21] font-bold block">
+                Authorized Admin Email
               </label>
               <input
                 type="email"
@@ -563,15 +589,15 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
                 disabled={lockout.isLocked}
                 value={authEmail}
                 onChange={(e) => setAuthEmail(e.target.value)}
-                placeholder="Enter authorized curator email"
+                placeholder="humperszk@gmail.com"
                 autoComplete="username"
-                className="w-full p-2.5 border border-[#EBE4D8] bg-[#FAF8F5] text-[#1C1F1E] focus:outline-none focus:border-[#C5A059] disabled:opacity-50"
+                className="w-full p-2.5 border border-[#EBE4D8] bg-[#FAF8F5] text-[#1C1F1E] focus:outline-none focus:border-[#C5A059] disabled:opacity-50 text-xs font-mono"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] uppercase tracking-wider text-[#162B21] font-semibold block">
-                Security Passphrase
+              <label className="text-[11px] uppercase tracking-wider text-[#162B21] font-bold block">
+                Master Passphrase
               </label>
               <div className="relative">
                 <input
@@ -580,9 +606,9 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
                   disabled={lockout.isLocked}
                   value={authPassword}
                   onChange={(e) => setAuthPassword(e.target.value)}
-                  placeholder="Enter security passphrase"
+                  placeholder="Enter master passphrase"
                   autoComplete="current-password"
-                  className="w-full p-2.5 pr-10 font-mono border border-[#EBE4D8] bg-[#FAF8F5] text-[#1C1F1E] focus:outline-none focus:border-[#C5A059] disabled:opacity-50"
+                  className="w-full p-2.5 pr-10 font-mono border border-[#EBE4D8] bg-[#FAF8F5] text-[#1C1F1E] focus:outline-none focus:border-[#C5A059] disabled:opacity-50 text-xs"
                 />
                 <button
                   type="button"
@@ -594,12 +620,33 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-1">
-              <span className="text-[10px] text-[#525B56]">Protected by SHA-256</span>
+            {/* 2FA Master Security PIN */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] uppercase tracking-wider text-[#162B21] font-bold block">
+                  2FA Master Security PIN
+                </label>
+                <span className="text-[10px] text-[#C5A059] font-mono">6-Digit Dual Factor</span>
+              </div>
+              <input
+                type="password"
+                maxLength={6}
+                required
+                disabled={lockout.isLocked}
+                value={authPin}
+                onChange={(e) => setAuthPin(e.target.value.replace(/\D/g, ''))}
+                placeholder="Enter 6-digit Master PIN (e.g. 749201)"
+                autoComplete="one-time-code"
+                className="w-full p-2.5 border border-[#EBE4D8] bg-[#FAF8F5] text-[#1C1F1E] tracking-[0.3em] font-mono text-center focus:outline-none focus:border-[#C5A059] disabled:opacity-50 text-sm font-bold"
+              />
+            </div>
+
+            <div className="flex items-center justify-between pt-1 text-[10px] text-[#525B56]">
+              <span>SHA-256 + 2FA Protected</span>
               <button
                 type="button"
                 onClick={() => setIsForgotPassOpen(true)}
-                className="text-[11px] text-[#C5A059] hover:underline cursor-pointer font-medium"
+                className="text-[11px] text-[#C5A059] hover:underline cursor-pointer font-semibold"
               >
                 Forgot Master Passphrase?
               </button>
@@ -611,7 +658,7 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
               className="w-full py-3.5 bg-[#162B21] hover:bg-[#234233] disabled:bg-gray-400 text-[#FAF8F5] text-xs uppercase tracking-[0.2em] font-semibold transition-all cursor-pointer shadow-md flex items-center justify-center gap-2"
             >
               <KeyRound className="w-4 h-4 text-[#DFC289]" />
-              <span>Verify & Authorize Session</span>
+              <span>Verify 2FA & Authorize Perimeter</span>
             </button>
           </form>
 

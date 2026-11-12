@@ -172,8 +172,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             </span>
           </button>
 
-          {/* Admin Operations Quick Link */}
-          {currentUser?.email === 'humperszk@gmail.com' || currentUser?.role === 'ADMIN' ? (
+          {/* Admin Operations Quick Link — Strictly hidden from non-admin users */}
+          {(currentUser?.email === 'humperszk@gmail.com' || currentUser?.role === 'ADMIN') && (
             <button
               onClick={onOpenAdmin}
               className="flex items-center gap-1.5 py-1 px-3 bg-[#162B21] border border-[#C5A059] text-[#DFC289] text-[11px] uppercase tracking-wider font-semibold transition-all cursor-pointer rounded-xs shadow-xs hover:bg-[#234233]"
@@ -181,15 +181,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <Shield className="w-3.5 h-3.5 text-[#DFC289]" />
               <span>👑 Founder Admin</span>
-            </button>
-          ) : (
-            <button
-              onClick={onOpenAdmin}
-              className="hidden md:flex items-center gap-1.5 py-1.5 px-3 border border-[#EBE4D8] hover:border-[#C5A059] hover:bg-[#FAF8F5] text-[#525B56] hover:text-[#162B21] text-[11px] uppercase tracking-wider transition-colors cursor-pointer rounded-sm"
-              title="Operations & Order Console"
-            >
-              <Shield className="w-3.5 h-3.5 text-[#C5A059]" />
-              <span>Admin Portal</span>
             </button>
           )}
         </div>
@@ -262,16 +253,18 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             )}
 
-            <button
-              onClick={() => {
-                onOpenAdmin();
-                setMobileMenuOpen(false);
-              }}
-              className="w-full text-left text-xs uppercase tracking-wider text-[#162B21] flex items-center gap-2 font-medium pt-2 border-t border-[#F2EDE4]"
-            >
-              <Shield className="w-4 h-4 text-[#C5A059]" />
-              <span>Admin Operations Console</span>
-            </button>
+            {(currentUser?.email === 'humperszk@gmail.com' || currentUser?.role === 'ADMIN') && (
+              <button
+                onClick={() => {
+                  onOpenAdmin();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full text-left text-xs uppercase tracking-wider text-[#DFC289] bg-[#162B21] flex items-center gap-2 font-medium p-2.5 rounded-xs border border-[#C5A059]/40 mt-2"
+              >
+                <Shield className="w-4 h-4 text-[#DFC289]" />
+                <span>👑 Founder Admin Operations</span>
+              </button>
+            )}
           </div>
         </div>
       )}

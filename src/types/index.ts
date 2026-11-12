@@ -246,6 +246,7 @@ export interface UserAccount {
 export interface AdminSecurityConfig {
   adminEmail: string;
   passwordHash: string;
+  securityPin?: string;
   twoFactorEnabled: boolean;
   lastLoginTimestamp?: string;
   sessionTimeoutMinutes: number;

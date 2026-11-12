@@ -1100,6 +1100,7 @@ export default function App() {
         onOpenBespokeModal={() => setIsBespokeModalOpen(true)}
         onOpenConcierge={() => setIsConciergeOpen(true)}
         onOpenCustomerPortal={() => setIsCustomerPortalOpen(true)}
+        currentUser={currentUser}
       />
 
       {/* MODALS & DRAWERS */}

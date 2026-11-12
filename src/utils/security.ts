@@ -73,9 +73,9 @@ export function evaluatePasswordStrength(password: string): PasswordStrength {
   };
 }
 
-// Rate Limiting & Lockout Tracker for Admin Portal
-const MAX_FAILED_ATTEMPTS = 5;
-const LOCKOUT_DURATION_MS = 60 * 1000; // 60 seconds
+// High-Security Rate Limiting & Lockout Tracker for Admin Portal
+const MAX_FAILED_ATTEMPTS = 3;
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes security quarantine
 
 export interface LockoutState {
   isLocked: boolean;
@@ -117,7 +117,7 @@ export function recordFailedAdminAttempt(): LockoutState {
   if (current >= MAX_FAILED_ATTEMPTS) {
     const lockedUntil = Date.now() + LOCKOUT_DURATION_MS;
     localStorage.setItem('kashida_admin_locked_until', lockedUntil.toString());
-    return { isLocked: true, remainingSeconds: 60, attemptsLeft: 0 };
+    return { isLocked: true, remainingSeconds: Math.ceil(LOCKOUT_DURATION_MS / 1000), attemptsLeft: 0 };
   }
 
   return {

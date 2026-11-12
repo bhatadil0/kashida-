@@ -51,12 +51,10 @@ export const AdminForgotPasswordModal: React.FC<AdminForgotPasswordModalProps> =
     const cleanEmail = emailInput.trim().toLowerCase();
     const authorized =
       cleanEmail === adminConfig.adminEmail.toLowerCase() ||
-      cleanEmail === 'humperszk@gmail.com' ||
-      cleanEmail === 'curator@kashida-couture.com' ||
-      cleanEmail === 'admin@kashida-couture.com';
+      cleanEmail === 'humperszk@gmail.com';
 
     if (!authorized) {
-      setErrorMsg('Unauthorized administrative identity. Access recovery is restricted to verified curators.');
+      setErrorMsg('Unauthorized identity. Master recovery protocol is strictly restricted to Founder humperszk@gmail.com.');
       onRecordAudit(`Unauthorized Admin Password Recovery Attempt for [${cleanEmail}]`, 'FAILED');
       return;
     }

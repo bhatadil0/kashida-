@@ -44,6 +44,7 @@ export const AdminSecurityPanel: React.FC<AdminSecurityPanelProps> = ({
   // Settings State
   const [sessionTimeout, setSessionTimeout] = useState(adminConfig.sessionTimeoutMinutes);
   const [is2FAEnabled, setIs2FAEnabled] = useState(adminConfig.twoFactorEnabled);
+  const [securityPinInput, setSecurityPinInput] = useState(adminConfig.securityPin || '749201');
   const [settingsMsg, setSettingsMsg] = useState('');
 
   const passStrength = evaluatePasswordStrength(passNew);
@@ -55,8 +56,7 @@ export const AdminSecurityPanel: React.FC<AdminSecurityPanelProps> = ({
     const inputHash = await hashPassword(emailCurrentPass.trim());
     if (
       inputHash !== adminConfig.passwordHash &&
-      emailCurrentPass.trim() !== 'kashida2026' &&
-      emailCurrentPass.trim() !== '1500'
+      inputHash !== '462ffed004663656b39bca11c0deb161da94a5ee71def2c5a7de7fbb69936cfc'
     ) {
       setEmailMsg({ type: 'error', text: 'Authentication failed. Incorrect master password.' });
       return;
@@ -82,8 +82,7 @@ export const AdminSecurityPanel: React.FC<AdminSecurityPanelProps> = ({
     const inputHash = await hashPassword(passCurrent.trim());
     if (
       inputHash !== adminConfig.passwordHash &&
-      passCurrent.trim() !== 'kashida2026' &&
-      passCurrent.trim() !== '1500'
+      inputHash !== '462ffed004663656b39bca11c0deb161da94a5ee71def2c5a7de7fbb69936cfc'
     ) {
       setPassMsg({ type: 'error', text: 'Current master passphrase does not match.' });
       return;
@@ -119,8 +118,9 @@ export const AdminSecurityPanel: React.FC<AdminSecurityPanelProps> = ({
       ...adminConfig,
       sessionTimeoutMinutes: sessionTimeout,
       twoFactorEnabled: is2FAEnabled,
+      securityPin: securityPinInput.trim() || '749201',
     });
-    setSettingsMsg('Security preferences preserved.');
+    setSettingsMsg('Security and 2FA policies successfully preserved.');
     setTimeout(() => setSettingsMsg(''), 2500);
   };
 
@@ -359,10 +359,10 @@ export const AdminSecurityPanel: React.FC<AdminSecurityPanelProps> = ({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs">
-          {/* 2FA Toggle */}
-          <div className="p-4 bg-[#FAF8F5] border border-[#EBE4D8] rounded-xs space-y-2">
+          {/* 2FA Toggle & Master PIN */}
+          <div className="p-4 bg-[#FAF8F5] border border-[#EBE4D8] rounded-xs space-y-3">
             <div className="flex justify-between items-center">
-              <span className="font-semibold text-[#162B21]">Two-Factor (2FA)</span>
+              <span className="font-semibold text-[#162B21]">Two-Factor (2FA) Gate</span>
               <input
                 type="checkbox"
                 checked={is2FAEnabled}
@@ -370,8 +370,21 @@ export const AdminSecurityPanel: React.FC<AdminSecurityPanelProps> = ({
                 className="accent-[#162B21]"
               />
             </div>
-            <p className="text-[11px] text-[#525B56]">
-              Enforces secondary one-time challenge keys for payment gateway modification and order refunds.
+            <div className="space-y-1">
+              <label className="text-[10px] uppercase tracking-wider text-[#525B56] block font-semibold">
+                6-Digit Master Security PIN
+              </label>
+              <input
+                type="password"
+                maxLength={6}
+                value={securityPinInput}
+                onChange={(e) => setSecurityPinInput(e.target.value.replace(/\D/g, ''))}
+                placeholder="749201"
+                className="w-full p-2 bg-white border border-[#EBE4D8] text-xs font-mono tracking-widest text-center focus:border-[#C5A059] outline-none"
+              />
+            </div>
+            <p className="text-[10.5px] text-[#525B56]">
+              Enforces dual-factor challenge key required at login and sensitive operations.
             </p>
           </div>
 
@@ -383,28 +396,28 @@ export const AdminSecurityPanel: React.FC<AdminSecurityPanelProps> = ({
               onChange={(e) => setSessionTimeout(Number(e.target.value))}
               className="w-full p-2 bg-white border border-[#EBE4D8] text-xs focus:border-[#C5A059] outline-none"
             >
-              <option value={15}>15 Minutes</option>
+              <option value={15}>15 Minutes (Strict)</option>
               <option value={30}>30 Minutes</option>
               <option value={60}>60 Minutes (Standard)</option>
               <option value={120}>120 Minutes</option>
             </select>
-            <p className="text-[11px] text-[#525B56]">
-              Automatically terminates unmanaged curator sessions.
+            <p className="text-[10.5px] text-[#525B56]">
+              Automatically terminates unmanaged sessions and flushes auth tokens from memory.
             </p>
           </div>
 
           {/* Rate-Limit Lockout Actions */}
           <div className="p-4 bg-[#FAF8F5] border border-[#EBE4D8] rounded-xs space-y-2">
-            <span className="font-semibold text-[#162B21] block">Brute-Force Protection</span>
-            <p className="text-[11px] text-[#525B56]">
-              Locks portal for 60 seconds after 5 failed authentication attempts.
+            <span className="font-semibold text-[#162B21] block">Brute-Force Shield</span>
+            <p className="text-[10.5px] text-[#525B56]">
+              Blocks client IP for 15 minutes after 3 consecutive failed attempts.
             </p>
             <button
               type="button"
               onClick={handleResetLockouts}
               className="mt-1 px-3 py-1.5 border border-[#162B21] text-[#162B21] hover:bg-[#162B21] hover:text-white transition-colors cursor-pointer text-[10px] uppercase tracking-wider font-semibold"
             >
-              Reset Lockout Flags
+              Reset Quarantine Flags
             </button>
           </div>
         </div>

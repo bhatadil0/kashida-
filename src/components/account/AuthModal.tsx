@@ -74,7 +74,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     const matchedUser = registeredUsers.find(
       (u) =>
         u.email.toLowerCase() === cleanEmail &&
-        (u.passwordHash === hashed || u.passwordHash === loginPassword || loginPassword === 'kashida2026')
+        (u.passwordHash === hashed || u.passwordHash === loginPassword)
     );
 
     if (matchedUser) {

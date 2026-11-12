@@ -263,5 +263,50 @@ export interface ProductQA {
   helpfulCount: number;
 }
 
+export interface HomepageHeroConfig {
+  imageUrl: string;
+  badge: string;
+  headline: string;
+  subheadline: string;
+  ctaText: string;
+  overlayOpacity: number; // 0 - 100
+}
+
+export interface HomepageLookbookItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  categoryTag: string;
+  imageUrl: string;
+  linkCategory: string;
+}
+
+export interface HomepageHeritageConfig {
+  artisanImageUrl: string;
+  artisanImageAlt: string;
+  dossierTitle: string;
+  dossierDescription: string;
+  headline: string;
+  subheadline: string;
+  narrativeParagraph1: string;
+  narrativeParagraph2: string;
+}
+
+export interface HomepagePromoBannerConfig {
+  enabled: boolean;
+  imageUrl: string;
+  badge: string;
+  title: string;
+  subtitle: string;
+  couponCode: string;
+}
+
+export interface HomepageCMSConfig {
+  hero: HomepageHeroConfig;
+  lookbook: HomepageLookbookItem[];
+  heritage: HomepageHeritageConfig;
+  promoBanner: HomepagePromoBannerConfig;
+}
+
 
 

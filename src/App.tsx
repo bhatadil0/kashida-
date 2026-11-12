@@ -11,14 +11,17 @@ import {
   CategoryConfig,
   Review,
   UserAccount,
+  HomepageCMSConfig,
 } from './types';
 import { INITIAL_PRODUCTS, PROMO_COUPONS, INITIAL_CATEGORIES } from './data/products';
+import { DEFAULT_HOMEPAGE_CMS } from './utils/homepageDefaults';
 import { AnnouncementBar } from './components/layout/AnnouncementBar';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { HeroBanner } from './components/home/HeroBanner';
 import { TrustBadges } from './components/home/TrustBadges';
 import { ArtisanHeritageSection } from './components/home/ArtisanHeritageSection';
+import { HomepageLookbookSection } from './components/home/HomepageLookbookSection';
 import { ProductCard } from './components/catalog/ProductCard';
 import { FilterBar, FilterOptions } from './components/catalog/FilterBar';
 import { QuickViewModal } from './components/catalog/QuickViewModal';
@@ -184,6 +187,23 @@ export default function App() {
     localStorage.setItem('kashida_seo_config', JSON.stringify(seoConfig));
     document.title = seoConfig.metaTitle;
   }, [seoConfig]);
+
+  // Homepage Visual & Media CMS State (Persisted & Editable in Admin)
+  const [homepageConfig, setHomepageConfig] = useState<HomepageCMSConfig>(() => {
+    const saved = localStorage.getItem('kashida_homepage_config');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse saved homepage config:', e);
+      }
+    }
+    return DEFAULT_HOMEPAGE_CMS;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('kashida_homepage_config', JSON.stringify(homepageConfig));
+  }, [homepageConfig]);
 
   // Cart State (Persisted)
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
@@ -809,6 +829,8 @@ export default function App() {
         announcementText={announcementText}
         paymentConfig={paymentConfig}
         seoConfig={seoConfig}
+        homepageConfig={homepageConfig}
+        onUpdateHomepageConfig={setHomepageConfig}
         onUpdateAnnouncement={setAnnouncementText}
         onUpdateOrderStatus={handleUpdateOrderStatus}
         onUpdateStock={handleUpdateStock}
@@ -904,14 +926,29 @@ export default function App() {
       <main className="flex-1">
         {currentView === 'home' && (
           <div className="space-y-16">
-            {/* Grand Hero Campaign */}
+            {/* Grand Hero Campaign with live CMS configuration */}
             <HeroBanner
+              heroConfig={homepageConfig.hero}
               onExplore={handleExploreCollection}
               onExploreHeritage={handleExploreHeritage}
             />
 
             {/* Trust and Authenticity Badges */}
             <TrustBadges />
+
+            {/* Trending Homepage Lookbook & Seasonal Promo Banner (Admin CMS Powered) */}
+            <HomepageLookbookSection
+              cards={homepageConfig.lookbook}
+              promoBanner={homepageConfig.promoBanner}
+              onSelectCategory={handleSelectCategory}
+              onApplyPromoCode={(code) => {
+                const found = coupons.find((c) => c.code.toUpperCase() === code.toUpperCase());
+                if (found) {
+                  setAppliedCoupon(found);
+                }
+                setIsCartOpen(true);
+              }}
+            />
 
             {/* Featured Seasonal Curations Section (3-column grid) */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -952,8 +989,9 @@ export default function App() {
               </div>
             </section>
 
-            {/* Artisan Heritage & Story Section */}
+            {/* Artisan Heritage & Story Section (Admin CMS Powered) */}
             <ArtisanHeritageSection
+              heritageConfig={homepageConfig.heritage}
               onExploreCouture={() => handleExploreCollection('pherans')}
             />
           </div>

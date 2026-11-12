@@ -40,6 +40,7 @@ import {
   AlertCircle,
   Clock,
   ShieldCheck,
+  Image as ImageIcon,
 } from 'lucide-react';
 import {
   OrderDossier,
@@ -51,12 +52,16 @@ import {
   SEOConfig,
   CategoryConfig,
   AdminSecurityConfig,
+  HomepageCMSConfig,
 } from '../../types';
 import { SEOHealthChecker } from './SEOHealthChecker';
 import { CategoryManager } from './CategoryManager';
 import { ProductFormModal } from './ProductFormModal';
 import { SEOBasicsTools } from './SEOBasicsTools';
 import { AdminSecurityPanel } from './AdminSecurityPanel';
+import { HomepageCmsPanel } from './HomepageCmsPanel';
+import { AdminForgotPasswordModal } from './AdminForgotPasswordModal';
+import { DEFAULT_HOMEPAGE_CMS } from '../../utils/homepageDefaults';
 import { ContentQualityScoreBadge } from '../product/ContentQualityScoreBadge';
 import { calculateProductSEOScore, autoOptimizeProductSEO } from '../../utils/seoHealth';
 import {
@@ -90,6 +95,8 @@ interface AdminPortalViewProps {
   onModerateReview: (productId: string, reviewId: string, action: 'delete' | 'toggle-verify') => void;
   onUpdatePaymentConfig: (newConfig: PaymentGatewayConfig) => void;
   onUpdateSEOConfig: (newConfig: SEOConfig) => void;
+  homepageConfig?: HomepageCMSConfig;
+  onUpdateHomepageConfig?: (newConfig: HomepageCMSConfig) => void;
   onReturnToStorefront: () => void;
   onReturnToStorefrontWithCategory?: (categoryId: string) => void;
 }
@@ -116,6 +123,8 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
   onModerateReview,
   onUpdatePaymentConfig,
   onUpdateSEOConfig,
+  homepageConfig,
+  onUpdateHomepageConfig,
   onReturnToStorefront,
   onReturnToStorefrontWithCategory,
 }) => {
@@ -128,6 +137,29 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
   const [showAdminPassword, setShowAdminPassword] = useState(false);
   const [authError, setAuthError] = useState('');
   const [lockout, setLockout] = useState<LockoutState>(() => checkAdminLockout());
+  const [isForgotPassOpen, setIsForgotPassOpen] = useState(false);
+
+  // Homepage CMS State (Persisted)
+  const [internalHomepageConfig, setInternalHomepageConfig] = useState<HomepageCMSConfig>(() => {
+    if (homepageConfig) return homepageConfig;
+    const saved = localStorage.getItem('kashida_homepage_config');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return DEFAULT_HOMEPAGE_CMS;
+  });
+
+  const handleUpdateHomeConfig = (newConfig: HomepageCMSConfig) => {
+    setInternalHomepageConfig(newConfig);
+    localStorage.setItem('kashida_homepage_config', JSON.stringify(newConfig));
+    if (onUpdateHomepageConfig) {
+      onUpdateHomepageConfig(newConfig);
+    }
+  };
 
   // Master Admin Configuration & Credentials (Persisted securely)
   const [adminConfig, setAdminConfig] = useState<AdminSecurityConfig>(() => {
@@ -165,7 +197,7 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
 
   // Active View / Sidebar Tab
   const [activeTab, setActiveTab] = useState<
-    'analytics' | 'products' | 'categories' | 'orders' | 'inventory' | 'gateways' | 'patrons' | 'coupons' | 'reviews' | 'seo' | 'security'
+    'analytics' | 'products' | 'categories' | 'homepage' | 'orders' | 'inventory' | 'gateways' | 'patrons' | 'coupons' | 'reviews' | 'seo' | 'security'
   >('analytics');
 
   // Security Audit Log State
@@ -562,6 +594,17 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
               </div>
             </div>
 
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-[10px] text-[#525B56]">Protected by SHA-256</span>
+              <button
+                type="button"
+                onClick={() => setIsForgotPassOpen(true)}
+                className="text-[11px] text-[#C5A059] hover:underline cursor-pointer font-medium"
+              >
+                Forgot Master Passphrase?
+              </button>
+            </div>
+
             <button
               type="submit"
               disabled={lockout.isLocked}
@@ -584,6 +627,20 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Master Passphrase Self-Service Recovery Modal */}
+        <AdminForgotPasswordModal
+          isOpen={isForgotPassOpen}
+          onClose={() => setIsForgotPassOpen(false)}
+          adminConfig={adminConfig}
+          onResetSuccess={(newConfig) => {
+            setAdminConfig(newConfig);
+            setIsAuthenticated(true);
+            localStorage.setItem('kashida_admin_auth', 'true');
+            setIsForgotPassOpen(false);
+          }}
+          onRecordAudit={recordAudit}
+        />
       </div>
     );
   }
@@ -683,9 +740,22 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
             >
               <div className="flex items-center gap-2.5">
                 <Layers className="w-4 h-4 text-[#DFC289]" />
-                <span>Categories & Imagery</span>
+                <span>Categories & Taxonomy</span>
               </div>
               <span className="font-mono text-[10px] tabular-nums">{categories.length}</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('homepage')}
+              className={`w-full text-left px-3 py-2.5 text-xs uppercase tracking-wider font-semibold rounded-xs flex items-center justify-between transition-colors cursor-pointer ${
+                activeTab === 'homepage' ? 'bg-[#162B21] text-[#FAF8F5]' : 'text-[#525B56] hover:bg-[#EBE4D8] hover:text-[#162B21]'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <ImageIcon className="w-4 h-4 text-[#DFC289]" />
+                <span>Homepage Pics & Media</span>
+              </div>
+              <span className="text-[9px] text-[#DFC289] font-bold">CMS</span>
             </button>
 
             <button
@@ -2048,6 +2118,15 @@ export const AdminPortalView: React.FC<AdminPortalViewProps> = ({
                 localStorage.removeItem('kashida_admin_audit_logs');
               }}
               onLogout={handleLogout}
+            />
+          )}
+
+          {/* TAB: HOMEPAGE VISUAL ASSETS & CMS */}
+          {activeTab === 'homepage' && (
+            <HomepageCmsPanel
+              config={homepageConfig || internalHomepageConfig}
+              onUpdateConfig={handleUpdateHomeConfig}
+              onPreviewStorefront={onReturnToStorefront}
             />
           )}
         </main>

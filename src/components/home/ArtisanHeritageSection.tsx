@@ -1,13 +1,38 @@
 import React from 'react';
 import { ArrowRight, Check } from 'lucide-react';
+import { HomepageHeritageConfig } from '../../types';
 
 interface ArtisanHeritageSectionProps {
+  heritageConfig?: HomepageHeritageConfig;
   onExploreCouture: () => void;
 }
 
 export const ArtisanHeritageSection: React.FC<ArtisanHeritageSectionProps> = ({
+  heritageConfig,
   onExploreCouture,
 }) => {
+  const imageUrl =
+    heritageConfig?.artisanImageUrl ||
+    '/src/assets/images/craft_artisan_embroidery_1794059619731.jpg';
+  const imageAlt =
+    heritageConfig?.artisanImageAlt ||
+    'Elderly Kashmiri master artisan hand-embroidering sozni pashmina in Srinagar atelier';
+  const dossierTitle =
+    heritageConfig?.dossierTitle ||
+    'Master Ustad Ghulam Nabi in his 1880 Srinagar wood atelier';
+  const dossierDesc =
+    heritageConfig?.dossierDescription ||
+    'Single-needle Sozni technique with 32 stitches per linear centimetre.';
+  const supertitle = heritageConfig?.subheadline || 'The Soul of the Valley';
+  const headline =
+    heritageConfig?.headline || 'Where Time Is Counted In Stitches, Not Hours';
+  const paragraph1 =
+    heritageConfig?.narrativeParagraph1 ||
+    'In an era of disposable fashion and synthetic mass production, Kāshida Couture stands as a sanctuary for Kashmir’s finest living arts. Our garments are not stored in warehouses; they are individually hand-embroidered by multigenerational master craftspeople (Ustads) along the banks of the Jhelum and Dal Lake.';
+  const paragraph2 =
+    heritageConfig?.narrativeParagraph2 ||
+    'Every motif draws from Kashmir’s natural poetry: the flaming autumnal Chinar leaves, the almond blossoms of Badamwari, and the regal Paisley (Boteh) favored by Mughal empresses.';
+
   return (
     <section id="heritage-story" className="py-20 lg:py-28 px-4 sm:px-6 lg:px-8 bg-[#FAF8F5]">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
@@ -15,8 +40,8 @@ export const ArtisanHeritageSection: React.FC<ArtisanHeritageSectionProps> = ({
         <div className="relative group">
           <div className="relative aspect-[4/3] overflow-hidden rounded-sm bg-[#F2EDE4] shadow-xl">
             <img
-              src="/src/assets/images/craft_artisan_embroidery_1794059619731.jpg"
-              alt="Elderly Kashmiri master artisan hand-embroidering sozni pashmina in Srinagar atelier"
+              src={imageUrl}
+              alt={imageAlt}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               referrerPolicy="no-referrer"
             />
@@ -29,10 +54,10 @@ export const ArtisanHeritageSection: React.FC<ArtisanHeritageSectionProps> = ({
               Atelier Dossier
             </span>
             <p className="font-serif text-sm text-[#162B21] font-medium leading-snug">
-              Master Ustad Ghulam Nabi in his 1880 Srinagar wood atelier
+              {dossierTitle}
             </p>
             <p className="text-[11px] text-[#525B56] leading-tight">
-              Single-needle Sozni technique with 32 stitches per linear centimetre.
+              {dossierDesc}
             </p>
           </div>
         </div>
@@ -41,15 +66,19 @@ export const ArtisanHeritageSection: React.FC<ArtisanHeritageSectionProps> = ({
         <div className="space-y-6">
           <div className="space-y-2">
             <span className="text-xs uppercase tracking-[0.3em] text-[#C5A059] font-semibold">
-              The Soul of the Valley
+              {supertitle}
             </span>
             <h2 className="font-serif text-3xl sm:text-4xl text-[#162B21] tracking-tight leading-tight">
-              Where Time Is Counted In Stitches, Not Hours
+              {headline}
             </h2>
           </div>
 
           <p className="text-sm text-[#525B56] leading-relaxed">
-            In an era of disposable fashion and synthetic mass production, Kāshida Couture stands as a sanctuary for Kashmir’s finest living arts. Our garments are not stored in warehouses; they are individually hand-embroidered by multigenerational master craftspeople (Ustads) along the banks of the Jhelum and Dal Lake.
+            {paragraph1}
+          </p>
+
+          <p className="text-sm text-[#525B56] leading-relaxed">
+            {paragraph2}
           </p>
 
           <p className="text-sm text-[#525B56] leading-relaxed">

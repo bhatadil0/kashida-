@@ -19,6 +19,7 @@ import { AnnouncementBar } from './components/layout/AnnouncementBar';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { HeroBanner } from './components/home/HeroBanner';
+import { CategoryRibbon } from './components/home/CategoryRibbon';
 import { TrustBadges } from './components/home/TrustBadges';
 import { ArtisanHeritageSection } from './components/home/ArtisanHeritageSection';
 import { HomepageLookbookSection } from './components/home/HomepageLookbookSection';
@@ -931,6 +932,13 @@ export default function App() {
               heroConfig={homepageConfig.hero}
               onExplore={handleExploreCollection}
               onExploreHeritage={handleExploreHeritage}
+            />
+
+            {/* Quick-Access Curated Taxonomy Ribbon */}
+            <CategoryRibbon
+              categories={categories}
+              activeCategory={filters.category}
+              onSelectCategory={handleSelectCategory}
             />
 
             {/* Trust and Authenticity Badges */}

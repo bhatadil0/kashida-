@@ -81,10 +81,6 @@ export const ArtisanHeritageSection: React.FC<ArtisanHeritageSectionProps> = ({
             {paragraph2}
           </p>
 
-          <p className="text-sm text-[#525B56] leading-relaxed">
-            Every motif draws from Kashmir’s natural poetry: the flaming autumnal Chinar leaves, the almond blossoms of Badamwari, and the regal Paisley (Boteh) favored by Mughal empresses.
-          </p>
-
           <div className="space-y-3 pt-2">
             <div className="flex items-start gap-3">
               <div className="w-5 h-5 rounded-full bg-[#162B21] text-[#DFC289] flex items-center justify-center shrink-0 mt-0.5">

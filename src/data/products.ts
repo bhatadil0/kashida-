@@ -114,9 +114,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     fabric: 'Pure Mulberry Silk Chanderi',
     embroidery: 'Kashida Hand Floral Needlework',
     occasions: ['Spring Gatherings', 'Elegance Daywear', 'Intimate Weddings'],
-    primaryImage: '/src/assets/images/product_silk_kurta_1794059619841.jpg',
+    primaryImage: '/src/assets/images/lookbook_silk_kurta_1794468433537.jpg',
     galleryImages: [
-      '/src/assets/images/product_silk_kurta_1794059619841.jpg',
+      '/src/assets/images/lookbook_silk_kurta_1794468433537.jpg',
       '/src/assets/images/hero_kashida_couture_1794059616415.jpg'
     ],
     variants: [
@@ -157,10 +157,10 @@ export const INITIAL_PRODUCTS: Product[] = [
     fabric: '100% Merino Wool Felt (480 GSM)',
     embroidery: 'Aari Fine Chain-Stitch',
     occasions: ['Winter Banquets', 'High-Altitude Luxury', 'Evening Receptions'],
-    primaryImage: '/src/assets/images/hero_kashida_couture_1794059616415.jpg',
+    primaryImage: '/src/assets/images/product_indigo_pheran_1794468434866.jpg',
     galleryImages: [
-      '/src/assets/images/hero_kashida_couture_1794059616415.jpg',
-      '/src/assets/images/product_velvet_pheran_1794059618066.jpg'
+      '/src/assets/images/product_indigo_pheran_1794468434866.jpg',
+      '/src/assets/images/craft_artisan_embroidery_1794059619731.jpg'
     ],
     variants: [
       { id: 'v-004-s', sku: 'SHH-MID-S', color: 'Midnight Indigo', colorHex: '#1B2430', size: 'S', stockCount: 3, priceDelta: 0 },
@@ -187,8 +187,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     fabric: 'Pure Mulberry Satin Silk',
     embroidery: 'Kashida Floral Jaal',
     occasions: ['Formal Dinners', 'Cultural Soirées', 'Everyday Luxury'],
-    primaryImage: '/src/assets/images/product_pashmina_shawl_1794059618001.jpg',
+    primaryImage: '/src/assets/images/lookbook_silk_stole_1794468433780.jpg',
     galleryImages: [
+      '/src/assets/images/lookbook_silk_stole_1794468433780.jpg',
       '/src/assets/images/product_pashmina_shawl_1794059618001.jpg'
     ],
     variants: [
@@ -216,8 +217,9 @@ export const INITIAL_PRODUCTS: Product[] = [
     fabric: 'Amber Glass Bottle (30ml)',
     embroidery: 'GI Verified Pampore Mongra Saffron',
     occasions: ['Evening Radiance Ritual', 'Restorative Skin Care'],
-    primaryImage: '/src/assets/images/craft_artisan_embroidery_1794059619731.jpg',
+    primaryImage: '/src/assets/images/product_saffron_elixir_1794468434796.jpg',
     galleryImages: [
+      '/src/assets/images/product_saffron_elixir_1794468434796.jpg',
       '/src/assets/images/craft_artisan_embroidery_1794059619731.jpg'
     ],
     variants: [
@@ -299,7 +301,7 @@ export const INITIAL_CATEGORIES: CategoryConfig[] = [
     name: 'Pure Woven Mulberry Silk Stoles',
     subtitle: 'Fluid Silk Wraps Handcrafted with Paisley & Chinar Medallions',
     description: 'Versatile evening wraps in lustrous natural silk, adorned with miniature paisley and chinar leaf medallions.',
-    image: '/src/assets/images/hero_kashida_couture_1794059616415.jpg',
+    image: '/src/assets/images/lookbook_silk_stole_1794468433780.jpg',
     imageAlt: 'Mulberry silk Kashmiri stole with gold metallic embroidery',
     slug: 'stoles',
     metaTitle: 'Kashmiri Mulberry Silk Stoles & Wraps — Bespoke Artisanal Textiles',
@@ -312,7 +314,7 @@ export const INITIAL_CATEGORIES: CategoryConfig[] = [
     name: 'Pampore Saffron & Botanical Radiance',
     subtitle: 'Artisanal Cold-Pressed Nectars Infused with Wild Walnut & Rose',
     description: 'Rare botanical elixirs formulated with GI-certified Pampore Mongra saffron, cold-pressed wild apricot kernel oil, and valley wild roses.',
-    image: '/src/assets/images/craft_artisan_embroidery_1794059619731.jpg',
+    image: '/src/assets/images/product_saffron_elixir_1794468434796.jpg',
     imageAlt: 'Kashmir Botanical Radiance Elixir with Pampore Saffron and Wild Apricot Oil',
     slug: 'cosmetics',
     metaTitle: 'Pampore Saffron Botanical Radiance Elixirs — Pure Kashmir Alchemy',
